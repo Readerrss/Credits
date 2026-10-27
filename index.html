@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RoadSense ADAS | End Credits, Team Poll & Telemetry Vault</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+        :root {
+            --bg-canvas: #07090d;
+            --surface-primary: #11141c;
+            --surface-recessed: #0b0d13;
+            --surface-elevated: #171c28;
+            --border-subtle: #232938;
+            --border-highlight: rgba(255, 255, 255, 0.08);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-canvas);
+            background-image: radial-gradient(#1a202c 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #e2e8f0;
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-variant-numeric: tabular-nums;
+            margin: 0;
+            padding: 0;
+        }
+
+        .mono-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .instrument-panel {
+            background-color: var(--surface-primary);
+            border: 1px solid var(--border-subtle);
+            border-top-color: var(--border-highlight);
+            box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.85);
+        }
+
+        .recessed-well {
+            background-color: var(--surface-recessed);
+            border: 1px solid #1a202c;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.65);
+        }
+
+        .elevated-card {
+            background-color: var(--surface-elevated);
+            border: 1px solid #2a3347;
+        }
+
+        .btn-action {
+            background-color: #10b981;
+            color: #042419;
+            font-weight: 700;
+            border: 1px solid #34d399;
+        }
+        .btn-action:hover:not(:disabled) {
+            background-color: #34d399;
+        }
+        .btn-action:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        @keyframes thankYouPulse {
+            0%, 100% {
+                transform: scale(1) translateY(0px);
+                text-shadow: 0 0 22px rgba(16, 185, 129, 0.55), 0 0 45px rgba(56, 189, 248, 0.35);
+            }
+            50% {
+                transform: scale(1.05) translateY(-3px);
+                text-shadow: 0 0 36px rgba(56, 189, 248, 0.95), 0 0 70px rgba(16, 185, 129, 0.75);
+            }
+        }
+        .thank-you-finale {
+            animation: thankYouPulse 2.4s ease-in-out infinite;
+        }
+
+        @keyframes finalePopIn {
+            0% { transform: scale(0.8); opacity: 0.3; }
+            60% { transform: scale(1.04); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .finale-unlocked {
+            animation: finalePopIn 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes eqBounce {
+            0%, 100% { height: 4px; }
+            50% { height: 14px; }
+        }
+        .eq-1 { animation: eqBounce 0.55s ease-in-out infinite; }
+        .eq-2 { animation: eqBounce 0.42s ease-in-out infinite 0.15s; }
+        .eq-3 { animation: eqBounce 0.65s ease-in-out infinite 0.28s; }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0b0d13; }
+        ::-webkit-scrollbar-thumb { background: #2d3548; border-radius: 3px; }
+    </style>
+</head>
+<body class="h-[100dvh] w-full flex flex-col justify-between overflow-hidden select-none">
+
+    <!-- BACKGROUND AUDIO ENGINE -->
+    <audio id="creditsAudio" preload="auto" loop>
+        <source src="music.mpeg" type="audio/mpeg">
+        <source src="./music.mpeg" type="audio/mp3">
+    </audio>
+
+    <!-- TAP-TO-START OVERLAY -->
+    <div id="audioUnlockOverlay" style="display: none;" onclick="unlockAudioAndStart()" class="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-6 text-center cursor-pointer">
+        <div class="instrument-panel p-6 sm:p-8 rounded-2xl max-w-md w-full border border-emerald-500/40 space-y-4">
+            <div class="text-4xl">🎬</div>
+            <span class="px-2.5 py-0.5 text-[11px] mono-num font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded">
+                THE GHOSTS // END CREDITS
+            </span>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-white">
+                Launch Project End Credits
+            </h2>
+            <p class="text-xs text-gray-400">
+                Tap anywhere to synchronize audio and roll the engineering credits.
+            </p>
+            <button type="button" class="btn-action w-full py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-pointer">
+                ▶ Enter Credits Experience
+            </button>
+        </div>
+    </div>
+
+    <!-- TOP NAVIGATION HEADER -->
+    <header class="w-full max-w-6xl mx-auto px-3 sm:px-6 py-3 border-b border-[#232938] flex flex-wrap items-center justify-between gap-2 shrink-0 bg-[#07090d]/95 z-30">
+        <div class="flex items-center gap-2.5">
+            <span id="vaultStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+            <h1 class="text-sm sm:text-base font-bold text-white tracking-tight">
+                ROADSENSE // END CREDITS & VAULT
+            </h1>
+        </div>
+
+        <!-- 3-VIEW NAVIGATION WITH LOCK STATUS -->
+        <div class="flex items-center gap-1 bg-[#111520] p-1 rounded-xl border border-[#252d3f]">
+            <button type="button" id="navCredits" onclick="switchPageSection('credits')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-500 text-[#042419] transition cursor-pointer">
+                1. Credits & Vote
+            </button>
+            <button type="button" id="navLottery" onclick="switchPageSection('lottery')" class="px-3 py-1 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">
+                <span id="navLotteryLabel">🔒 2. RNG Lottery</span>
+            </button>
+            <button type="button" id="navRedeem" onclick="switchPageSection('redeem')" class="px-3 py-1 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">
+                <span id="navRedeemLabel">🔒 3. Redeem Code</span>
+            </button>
+        </div>
+
+        <!-- AUDIO CLOCK & EXIT BUTTON -->
+        <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 px-2.5 py-1 rounded-lg recessed-well border border-[#263044]">
+                <div class="flex items-end gap-0.5 h-3.5">
+                    <span class="w-1 bg-emerald-400 eq-1 rounded-full"></span>
+                    <span class="w-1 bg-sky-400 eq-2 rounded-full"></span>
+                    <span class="w-1 bg-emerald-400 eq-3 rounded-full"></span>
+                </div>
+                <span id="songClock" class="mono-num text-[11px] text-gray-200">00:00</span>
+                <button type="button" id="muteToggleBtn" onclick="toggleAudioMute()" class="text-[11px] text-sky-400 hover:text-sky-300 font-semibold ml-1 cursor-pointer">
+                    Mute
+                </button>
+            </div>
+
+            <button type="button" onclick="exitCreditsToCockpit()" class="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition cursor-pointer">
+                ✕ Exit
+            </button>
+        </div>
+    </header>
+
+    <!-- SCROLLABLE MAIN VIEWPORT -->
+    <main id="creditsScrollViewport" class="flex-1 w-full max-w-5xl mx-auto overflow-y-auto px-3 sm:px-6 py-5">
+
+        <!-- SECTION 1: CREDITS & POLL -->
+        <section id="viewCreditsAndVote" class="space-y-8 pb-12">
+
+            <div class="instrument-panel p-3 rounded-xl flex flex-wrap items-center justify-between gap-2">
+                <div class="text-xs text-gray-300">
+                    🎬 <strong class="text-white">Engineering Roll:</strong> <span class="text-emerald-400">The Unofficial Best Project Crew</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="btnAutoScroll" onclick="toggleAutoScroll()" class="px-2.5 py-1 rounded-md bg-[#1c2333] hover:bg-[#263046] text-xs text-sky-300 border border-sky-500/30 cursor-pointer">
+                        ⏸ Pause Auto-Roll
+                    </button>
+                    <button type="button" onclick="jumpToVote()" class="px-2.5 py-1 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-xs text-emerald-300 border border-emerald-500/40 font-semibold cursor-pointer">
+                        ⬇ Skip to Finale & Poll
+                    </button>
+                </div>
+            </div>
+
+            <!-- CINEMATIC CREDITS ROLL CARD -->
+            <div class="instrument-panel rounded-2xl p-6 sm:p-10 text-center space-y-10 border border-[#2a3347]">
+
+                <div class="space-y-2">
+                    <span class="mono-num text-[11px] uppercase tracking-widest text-emerald-400 font-bold block">
+                        TECHNO INDIA UNIVERSITY &bull; B.TECH CSE (2023–2027)
+                    </span>
+                    <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-wide">
+                        ROADSENSE: ADAS NEURAL PERCEPTION
+                    </h2>
+                    <p class="text-xs sm:text-sm text-gray-400 max-w-2xl mx-auto">
+                        Real-Time Monocular Depth Fusion, Dual-Geometry Disagreement (DGI) & Multi-Hazard Risk Arbitration for Unstructured Indian Traffic
+                    </p>
+                </div>
+
+                <div class="w-24 h-[1px] bg-[#283145] mx-auto"></div>
+
+                <!-- 1. CORE SYSTEM ARCHITECTURE -->
+                <div class="space-y-3.5 max-w-2xl mx-auto">
+                    <span class="mono-num text-[11px] uppercase tracking-widest text-sky-400 font-bold block">
+                        SYSTEM ARCHITECTURE, FULL-STACK ENGINE & NEURAL TRAINING
+                    </span>
+                    <h3 class="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                        Mitadru Karmakar
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left text-xs text-gray-300 pt-1">
+                        <div class="recessed-well p-3 rounded-lg">
+                            <strong class="text-emerald-400 block mb-0.5">Backend & Zero-Lag Streaming</strong>
+                            Engineered the FastAPI asynchronous perception server, WebSocket lockstep handshake, and mobile single-slot drop queue.
+                        </div>
+                        <div class="recessed-well p-3 rounded-lg">
+                            <strong class="text-emerald-400 block mb-0.5">250-Epoch Model Training</strong>
+                            Migrated YOLOv8 to YOLO26, trained 250 epochs at 1024px resolution (jumping from 36% to 73% mAP), and built TensorRT FP16 acceleration.
+                        </div>
+                        <div class="recessed-well p-3 rounded-lg">
+                            <strong class="text-emerald-400 block mb-0.5">Kinematics & DGC Arbitrator</strong>
+                            Developed Dual-Geometry Consistency (DGC), ground-plane auto-rickshaw disambiguation, and cross-class rider pruning.
+                        </div>
+                        <div class="recessed-well p-3 rounded-lg">
+                            <strong class="text-emerald-400 block mb-0.5">Autonomous Cockpit Frontend</strong>
+                            Designed the responsive desktop & mobile telemetry UI, 30-meter spatial radar, and interactive Easter egg portals.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-16 h-[1px] bg-[#232b3d] mx-auto"></div>
+
+                <!-- 2. DATASET PREPROCESSING -->
+                <div class="space-y-2.5 max-w-xl mx-auto">
+                    <span class="mono-num text-[11px] uppercase tracking-widest text-amber-400 font-bold block">
+                        DATASET ENGINEERING & PREPROCESSING PIPELINE
+                    </span>
+                    <h3 class="text-lg sm:text-xl font-bold text-white">
+                        Ritam Chatterjee
+                    </h3>
+                    <p class="text-xs text-gray-300 leading-relaxed recessed-well p-3.5 rounded-lg">
+                        Preprocessed the 20GB+ Indian Driving Dataset (IDD), auto-labeled and audited over 40,000+ traffic frames (88,056 bounding boxes across 8 classes), curated rare road hazard samples (<code class="text-amber-300">pothole</code>, <code class="text-amber-300">speed_bump</code>, <code class="text-amber-300">stray_animal</code>), and verified YOLO ground-truth bounding box geometry.
+                    </p>
+                </div>
+
+                <div class="w-16 h-[1px] bg-[#232b3d] mx-auto"></div>
+
+                <!-- 3. MODEL TESTING & QA -->
+                <div class="space-y-2.5 max-w-xl mx-auto">
+                    <span class="mono-num text-[11px] uppercase tracking-widest text-purple-400 font-bold block">
+                        MODEL VALIDATION, BENCHMARKING & FIELD QA
+                    </span>
+                    <h3 class="text-lg sm:text-xl font-bold text-white">
+                        Syed Meraj Ahmed
+                    </h3>
+                    <p class="text-xs text-gray-300 leading-relaxed recessed-well p-3.5 rounded-lg">
+                        Conducted comprehensive stress-testing of <code class="text-purple-300">best.pt</code> and <code class="text-purple-300">best.engine</code> weights across real-world pictures and dashcam videos—verifying detection accuracy and alert stability across daytime highway traffic, night headlight glare, and monsoon rain.
+                    </p>
+                </div>
+
+                <div class="w-16 h-[1px] bg-[#232b3d] mx-auto"></div>
+
+                <!-- 4. EMERGING TECH & RESEARCH PAPERS -->
+                <div class="space-y-3 max-w-2xl mx-auto">
+                    <span class="mono-num text-[11px] uppercase tracking-widest text-emerald-400 font-bold block">
+                        EMERGING TECHNOLOGIES DISCOVERY & IEEE RESEARCH PAPERS
+                    </span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="recessed-well p-3.5 rounded-lg">
+                            <h4 class="text-base font-bold text-white mb-1">Sourajita Choudhury</h4>
+                            <p class="text-xs text-gray-300 leading-relaxed">
+                                Researched emerging computer vision technologies, formulated multi-hazard threat logic specifications, and co-authored the IEEE conference research paper.
+                            </p>
+                        </div>
+                        <div class="recessed-well p-3.5 rounded-lg">
+                            <h4 class="text-base font-bold text-white mb-1">Debankita Das</h4>
+                            <p class="text-xs text-gray-300 leading-relaxed">
+                                Investigated spatial risk assessment methodologies, structured comparative literature benchmarks, and co-authored the IEEE conference manuscript.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-16 h-[1px] bg-[#232b3d] mx-auto"></div>
+
+                <!-- PRODUCTION MILESTONES -->
+                <div class="max-w-xl mx-auto recessed-well p-4 rounded-xl text-xs text-gray-400 space-y-1.5 mono-num">
+                    <div class="text-white font-bold mb-1">PROJECT TELEMETRY & SURVIVAL LOG</div>
+                    <div>• Hardware: HP Victus 15 (Ryzen 7 + RTX 3050 6GB) & Kaggle T4 GPU Sessions</div>
+                    <div>• Accuracy Jump: 36.0% Baseline &rarr; 73.0% mAP@50 (250 Epochs @ 1024px)</div>
+                    <div>• Dataset Volume: 20GB+ Video Logs &bull; 40,000+ Frames &bull; 88,056 Verified Boxes</div>
+                    <div class="text-[11px] text-gray-500 pt-1">Core Architecture & Full-Stack Platform Engineered by Mitadru Karmakar</div>
+                </div>
+
+                <!-- ANIMATED THANK YOU FINALE -->
+                <div id="thankYouFinaleBox" class="pt-6 pb-2 transition-all duration-700">
+                    <div id="thankYouCardInner" class="inline-block px-7 py-5 rounded-2xl elevated-card border-2 border-emerald-500/50 shadow-2xl">
+                        <div class="text-2xl sm:text-4xl font-black text-white tracking-wider thank-you-finale">
+                            🌟 THANK YOU FOR WATCHING! 🌟
+                        </div>
+                        <p class="text-xs sm:text-sm text-emerald-300 mt-2">
+                            Vote for your favorite crew member below to unlock your RNG Behind-The-Scenes Vault Spin!
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- UNBIASED COMMUNITY POLL -->
+            <div id="voteSection" class="instrument-panel rounded-2xl p-5 sm:p-7 border border-[#2f384d]">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#232938] pb-3 mb-4">
+                    <div>
+                        <span class="text-[10px] mono-num uppercase tracking-wider text-amber-400 font-bold block">
+                            UNBIASED COMMUNITY POLL
+                        </span>
+                        <h3 class="text-lg sm:text-xl font-bold text-white">
+                            Vote for Your Favorite Project Member
+                        </h3>
+                    </div>
+                    <span class="text-xs text-gray-400">
+                        Randomized card order on every load &bull; Voting unlocks 1 RNG Vault Spin
+                    </span>
+                </div>
+
+                <div id="memberPollGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3"></div>
+
+                <div id="voteConfirmedBanner" class="hidden mt-5 p-4 rounded-xl bg-emerald-950/70 border border-emerald-500/60 flex flex-wrap items-center justify-between gap-3">
+                    <div class="text-xs sm:text-sm text-emerald-200">
+                        🎉 <strong class="text-white">Vote Registered for <span id="chosenMemberSpan" class="text-emerald-300 underline"></span>!</strong> Clearance granted: You have unlocked the RNG Telemetry Vault.
+                    </div>
+                    <button type="button" onclick="switchPageSection('lottery')" class="btn-action px-4 py-2 rounded-lg text-xs uppercase tracking-wider cursor-pointer">
+                        🎰 Open RNG Lottery Vault &rarr;
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- SECTION 2: RNG REWARD LOTTERY (GATED BY VOTE) -->
+        <section id="viewRngLottery" style="display: none;" class="space-y-6 pb-12">
+            
+            <!-- LOCKED STATE OVERLAY CARD (Shown if user hasn't voted) -->
+            <div id="lotteryLockedCard" class="instrument-panel rounded-2xl p-8 sm:p-12 text-center max-w-2xl mx-auto border-2 border-amber-500/50 space-y-5">
+                <div class="text-6xl animate-bounce">🔒</div>
+                <div class="space-y-2">
+                    <span class="px-3 py-1 text-[11px] mono-num font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded">
+                        ACCESS DENIED // VOTE REQUIRED
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+                        Vault RNG Loot Box Locked
+                    </h2>
+                    <p class="text-xs sm:text-sm text-gray-300 max-w-lg mx-auto">
+                        You must cast your vote for your favorite engineering team member in the Team Poll before spinning the Telemetry Vault.
+                    </p>
+                </div>
+                <div class="pt-2">
+                    <button type="button" onclick="jumpToVoteSectionAndHighlight()" class="btn-action px-6 py-3 rounded-xl text-xs uppercase tracking-wider cursor-pointer shadow-lg shadow-emerald-500/20">
+                        🗳️ Cast Your Vote to Unlock Vault &rarr;
+                    </button>
+                </div>
+            </div>
+
+            <!-- UNLOCKED CONTENT (Shown after vote is registered) -->
+            <div id="lotteryUnlockedContent" class="hidden space-y-6">
+                <div class="instrument-panel rounded-2xl p-6 sm:p-8 text-center max-w-2xl mx-auto border border-[#2f384d]">
+                    <span class="px-2.5 py-0.5 text-[11px] mono-num font-bold uppercase bg-purple-500/15 text-purple-300 border border-purple-500/30 rounded">
+                        RNG TELEMETRY LOOT BOX // UNLOCKED
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">
+                        Roll for Behind-The-Scenes Rewards
+                    </h2>
+                    <p class="text-xs sm:text-sm text-gray-400 mt-1">
+                        Spin the RNG generator once per visit to generate a 10-digit key for our Main Soundtrack, Mythic Rickroll, Field Test Videos, or EDA Photos!
+                    </p>
+
+                    <!-- Prize Tiers Display -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 my-5 text-xs">
+                        <div class="recessed-well p-2 rounded-lg border border-amber-500/40">
+                            <span class="text-amber-400 font-bold block">🏆 1st PRIZE</span>
+                            <span class="text-gray-300 text-[11px]">Main Music Track</span>
+                        </div>
+                        <div class="recessed-well p-2 rounded-lg border border-yellow-500/40">
+                            <span class="text-yellow-400 font-bold block">🥈 2nd PRIZE</span>
+                            <span class="text-gray-300 text-[11px]">Rickroll Audio</span>
+                        </div>
+                        <div class="recessed-well p-2 rounded-lg border border-purple-500/40">
+                            <span class="text-purple-300 font-bold block">🎬 3rd PRIZE</span>
+                            <span class="text-gray-300 text-[11px]">BTS Field Videos</span>
+                        </div>
+                        <div class="recessed-well p-2 rounded-lg border border-sky-500/40">
+                            <span class="text-sky-300 font-bold block">📸 4th PRIZE</span>
+                            <span class="text-gray-300 text-[11px]">BTS EDA Photos</span>
+                        </div>
+                    </div>
+
+                    <!-- RNG Slot Display -->
+                    <div class="recessed-well rounded-xl p-6 my-4 border-2 border-[#2a3347] min-h-[135px] flex flex-col items-center justify-center">
+                        <div id="slotIcon" class="text-4xl mb-1.5">🎲</div>
+                        <div id="slotTitle" class="text-base sm:text-lg font-bold text-white mono-num">
+                            READY TO SPIN RNG
+                        </div>
+                        <div id="slotSub" class="text-xs text-gray-400 mt-0.5">
+                            1 Roll allowed per visit &bull; Generates a 10-digit key
+                        </div>
+                    </div>
+
+                    <button type="button" id="btnSpinRng" onclick="spinRewardRng()" class="btn-action px-6 py-3 rounded-xl text-sm uppercase tracking-wider cursor-pointer">
+                        🎰 Roll RNG Lottery (1 Left)
+                    </button>
+
+                    <!-- Generated Redeem Code Card -->
+                    <div id="wonTicketCard" class="hidden mt-6 p-4 rounded-xl elevated-card border border-amber-500/50 text-left space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span id="wonTierBadge" class="text-[11px] mono-num font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                                MYTHIC PRIZE
+                            </span>
+                            <span class="text-xs text-gray-400">Copy & Enter in Redeem Portal</span>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-between gap-2 recessed-well p-3 rounded-lg">
+                            <div>
+                                <div class="text-[10px] uppercase text-gray-400">Your 10-Digit Steam-Style Key:</div>
+                                <div id="wonRedeemCode" class="mono-num text-base sm:text-lg font-bold text-emerald-400 tracking-widest select-all">
+                                    8K4F9L2M7W
+                                </div>
+                            </div>
+                            <button type="button" id="copyCodeBtn" onclick="copyWonCode()" class="px-3 py-1.5 rounded bg-[#232b3d] hover:bg-[#2f3952] text-xs font-semibold text-white cursor-pointer">
+                                📋 Copy Key
+                            </button>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1">
+                            <span class="text-[11px] text-gray-400"><a href="" onclick="openRedeemPortalTab(); return false;" class="text-sky-400 underline"></a></span>
+                            <button type="button" onclick="openRedeemPortalTab()" class="btn-action px-4 py-2 rounded-lg text-xs cursor-pointer">
+                                🔗 Go to Redeem Code Portal &rarr;
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RNG PROBABILITY TABLE (RICH CONTENT) -->
+                <div class="instrument-panel rounded-2xl p-5 max-w-2xl mx-auto border border-[#232938] text-xs space-y-3">
+                    <div class="flex items-center justify-between border-b border-[#1c2333] pb-2">
+                        <span class="font-bold text-white uppercase mono-num">📊 Telemetry Loot Box Drop Probabilities</span>
+                        <span class="text-emerald-400 font-semibold">1 Roll / Session</span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-gray-300">
+                        <div class="recessed-well p-2 rounded">
+                            <span class="block font-bold text-amber-400">20% Odds</span>
+                            <span class="text-[10px] text-gray-400">1st Prize Main Music</span>
+                        </div>
+                        <div class="recessed-well p-2 rounded">
+                            <span class="block font-bold text-yellow-400">20% Odds</span>
+                            <span class="text-[10px] text-gray-400">2nd Prize Rickroll</span>
+                        </div>
+                        <div class="recessed-well p-2 rounded">
+                            <span class="block font-bold text-purple-300">30% Odds</span>
+                            <span class="text-[10px] text-gray-400">3rd Prize Field Video</span>
+                        </div>
+                        <div class="recessed-well p-2 rounded">
+                            <span class="block font-bold text-sky-300">30% Odds</span>
+                            <span class="text-[10px] text-gray-400">4th Prize EDA Photo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- SECTION 3: REDEEM CODE PORTAL (GATED BY VOTE) -->
+        <section id="viewRedeemPortal" style="display: none;" class="space-y-6 pb-12">
+            
+            <!-- LOCKED STATE OVERLAY CARD -->
+            <div id="redeemLockedCard" class="instrument-panel rounded-2xl p-8 sm:p-12 text-center max-w-2xl mx-auto border-2 border-amber-500/50 space-y-5">
+                <div class="text-6xl animate-bounce">🔐</div>
+                <div class="space-y-2">
+                    <span class="px-3 py-1 text-[11px] mono-num font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded">
+                        ACCESS DENIED // VOTE REQUIRED
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+                        Redemption Portal Locked
+                    </h2>
+                    <p class="text-xs sm:text-sm text-gray-300 max-w-lg mx-auto">
+                        Please participate in our Team Member Poll to unlock key verification and media downloads.
+                    </p>
+                </div>
+                <div class="pt-2">
+                    <button type="button" onclick="jumpToVoteSectionAndHighlight()" class="btn-action px-6 py-3 rounded-xl text-xs uppercase tracking-wider cursor-pointer shadow-lg shadow-emerald-500/20">
+                        🗳️ Cast Your Vote to Unlock Vault &rarr;
+                    </button>
+                </div>
+            </div>
+
+            <!-- UNLOCKED CONTENT -->
+            <div id="redeemUnlockedContent" class="hidden space-y-6">
+                <div class="instrument-panel rounded-2xl p-6 sm:p-8 max-w-2xl mx-auto border border-[#2f384d]">
+                    <span class="px-2.5 py-0.5 text-[11px] mono-num font-bold uppercase bg-sky-500/15 text-sky-300 border border-sky-500/30 rounded">
+                        REDEEM CODE PORTAL // VERIFIED CLEARANCE
+                    </span>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-white mt-2">
+                        Claim & Download/Redirect to Your Reward
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-1">
+                        Type or paste your 10-digit RNG key below to unlock your reward directly in your browser.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-2 mt-4">
+                        <input type="text" id="codeInputBox" maxlength="10" autocomplete="off" spellcheck="false" placeholder="ENTER 10-DIGIT KEY (E.G. 8K4F9L2M7W)" class="flex-1 recessed-well px-3.5 py-2.5 rounded-lg text-sm mono-num text-white border border-[#2e384d] focus:outline-none focus:border-emerald-400 uppercase tracking-widest" />
+                        <button type="button" onclick="redeemEnteredCode()" class="btn-action px-5 py-2.5 rounded-lg text-xs uppercase tracking-wider cursor-pointer shrink-0">
+                            🔓 Unlock Reward
+                        </button>
+                    </div>
+                    <p id="codeErrorText" class="text-xs text-red-400 mt-2 hidden"></p>
+
+                    <!-- Unlocked Reward Card -->
+                    <div id="unlockedRewardCard" class="hidden mt-6 p-4 rounded-xl recessed-well border border-emerald-500/50 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#1f2637] pb-3">
+                            <div>
+                                <span id="unlockedTierText" class="text-[10px] mono-num uppercase text-emerald-400 font-bold block">
+                                    UNLOCKED REWARD
+                                </span>
+                                <h3 id="unlockedTitleText" class="text-sm sm:text-base font-bold text-white">
+                                    Reward Unlocked
+                                </h3>
+                            </div>
+                            <button type="button" id="directDownloadBtn" onclick="triggerDirectBrowserDownload()" class="btn-action px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 cursor-pointer">
+                                ↗ Redirect to Media
+                            </button>
+                        </div>
+
+                        <p id="unlockedDescText" class="text-xs text-gray-300"></p>
+
+                        <!-- Live Preview Stage -->
+                        <div id="unlockedMediaStage" class="w-full rounded-lg overflow-hidden bg-black flex items-center justify-center min-h-[160px] max-h-[380px]"></div>
+                    </div>
+                </div>
+
+                <!-- KEY VERIFICATION INSTRUCTIONS & FAQ -->
+                <div class="instrument-panel rounded-2xl p-5 max-w-2xl mx-auto border border-[#232938] text-xs space-y-2 text-gray-400">
+                    <span class="font-bold text-white block mb-1">ℹ️ Key Verification System Notes</span>
+                    <p>• Keys are 10-character alphanumeric strings generated exclusively via the RNG Telemetry Loot Box.</p>
+                    <p>• Videos automatically initiate direct file downloads; audio and photos open high-resolution Google Drive previews.</p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="w-full max-w-6xl mx-auto px-4 py-2 text-center text-[11px] text-gray-500 border-t border-[#1b202d] shrink-0">
+        The Unofficial Best Project Crew &bull; RoadSense ADAS &bull; 2026
+    </footer>
+
+    <script>
+        const creditsAudio = document.getElementById('creditsAudio');
+        const audioUnlockOverlay = document.getElementById('audioUnlockOverlay');
+        const songClock = document.getElementById('songClock');
+        const creditsScrollViewport = document.getElementById('creditsScrollViewport');
+
+        let isAutoRolling = true;
+        let autoRollFrame = null;
+        let currentWonCode = "";
+        let hasRolledThisVisit = false;
+        let activeUnlockedItem = null;
+        let bgAudioWasPlayingBeforeReward = false;
+        
+        // LOCK SYSTEM STATE
+        let hasVoted = false;
+
+        // =====================================================================
+        // 1. AUDIO ENGINE
+        // =====================================================================
+        function tryStartAudio() {
+            creditsAudio.volume = 0.9;
+            const playPromise = creditsAudio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    audioUnlockOverlay.style.display = 'none';
+                    startAutoRoll();
+                }).catch(() => {
+                    audioUnlockOverlay.style.display = 'flex';
+                });
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            creditsAudio.currentTime = 0;
+            tryStartAudio();
+
+            if (window.location.hash.startsWith('#redeem')) {
+                switchPageSection('redeem');
+            }
+        });
+
+        function unlockAudioAndStart() {
+            audioUnlockOverlay.style.display = 'none';
+            creditsAudio.volume = 0.9;
+            creditsAudio.play().catch(() => {});
+            startAutoRoll();
+        }
+
+        document.addEventListener('click', () => {
+            if (creditsAudio.paused && !document.hidden && audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
+                creditsAudio.play().catch(() => {});
+            }
+        }, { once: true });
+
+        creditsAudio.addEventListener('timeupdate', () => {
+            const sec = Math.floor(creditsAudio.currentTime || 0);
+            const m = String(Math.floor(sec / 60)).padStart(2, '0');
+            const s = String(sec % 60).padStart(2, '0');
+            songClock.innerText = `${m}:${s}`;
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                creditsAudio.pause();
+            } else if (audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
+                creditsAudio.play().catch(() => {});
+            }
+        });
+        window.addEventListener('blur', () => creditsAudio.pause());
+        window.addEventListener('focus', () => {
+            if (audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
+                creditsAudio.play().catch(() => {});
+            }
+        });
+        window.addEventListener('pagehide', () => creditsAudio.pause());
+
+        function toggleAudioMute() {
+            creditsAudio.muted = !creditsAudio.muted;
+            document.getElementById('muteToggleBtn').innerText = creditsAudio.muted ? 'Unmute' : 'Mute';
+        }
+
+        function exitCreditsToCockpit() {
+            creditsAudio.pause();
+            window.close();
+            window.location.href = 'index.html';
+        }
+
+        // =====================================================================
+        // 2. TAB NAVIGATION & ROLL CONTROLS WITH GATED ACCESS
+        // =====================================================================
+        function switchPageSection(section) {
+            document.getElementById('viewCreditsAndVote').style.display = (section === 'credits') ? 'block' : 'none';
+            document.getElementById('viewRngLottery').style.display     = (section === 'lottery') ? 'block' : 'none';
+            document.getElementById('viewRedeemPortal').style.display   = (section === 'redeem')  ? 'block' : 'none';
+
+            const navs = [
+                { id: 'credits', el: document.getElementById('navCredits') },
+                { id: 'lottery', el: document.getElementById('navLottery') },
+                { id: 'redeem',  el: document.getElementById('navRedeem') }
+            ];
+            navs.forEach(n => {
+                n.el.className = (n.id === section)
+                    ? 'px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-500 text-[#042419] transition cursor-pointer'
+                    : 'px-3 py-1 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer';
+            });
+
+            if (section !== 'credits') {
+                stopAutoRoll();
+            }
+            if (creditsAudio.paused && audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
+                creditsAudio.play().catch(() => {});
+            }
+        }
+
+        function startAutoRoll() {
+            isAutoRolling = true;
+            const btn = document.getElementById('btnAutoScroll');
+            if (btn) btn.innerText = '⏸ Pause Auto-Roll';
+            if (autoRollFrame) cancelAnimationFrame(autoRollFrame);
+
+            function step() {
+                if (!isAutoRolling) return;
+                creditsScrollViewport.scrollTop += 0.75;
+                if (creditsScrollViewport.scrollTop + creditsScrollViewport.clientHeight < creditsScrollViewport.scrollHeight - 4) {
+                    autoRollFrame = requestAnimationFrame(step);
+                } else {
+                    isAutoRolling = false;
+                    if (btn) btn.innerText = '▶ Resume Auto-Roll';
+                    document.getElementById('thankYouCardInner')?.classList.add('finale-unlocked');
+                }
+            }
+            autoRollFrame = requestAnimationFrame(step);
+        }
+
+        function stopAutoRoll() {
+            isAutoRolling = false;
+            const btn = document.getElementById('btnAutoScroll');
+            if (btn) btn.innerText = '▶ Resume Auto-Roll';
+            if (autoRollFrame) cancelAnimationFrame(autoRollFrame);
+        }
+
+        function toggleAutoScroll() {
+            if (isAutoRolling) stopAutoRoll();
+            else startAutoRoll();
+        }
+
+        function jumpToVote() {
+            stopAutoRoll();
+            document.getElementById('thankYouCardInner')?.classList.add('finale-unlocked');
+            document.getElementById('thankYouFinaleBox')?.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function jumpToVoteSectionAndHighlight() {
+            switchPageSection('credits');
+            setTimeout(() => {
+                document.getElementById('voteSection')?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+
+        creditsScrollViewport.addEventListener('wheel', () => stopAutoRoll(), { passive: true });
+        creditsScrollViewport.addEventListener('touchmove', () => stopAutoRoll(), { passive: true });
+
+        // =====================================================================
+        // 3. UNBIASED FAVORITE MEMBER POLL & UNLOCK TRIGGER
+        // =====================================================================
+        const CREW_MEMBERS = [
+            {
+                name: "Mitadru Karmakar",
+                role: "Backend, Frontend & Training",
+                desc: "Engineered the FastAPI/WebSocket backend, cockpit frontend, DGC kinematics, and 250-epoch YOLO training."
+            },
+            {
+                name: "Ritam Chatterjee",
+                role: "Dataset Preprocessing",
+                desc: "Preprocessed the 20GB+ dataset, auto-labeled 40,000+ frames, and verified 88,056 bounding boxes."
+            },
+            {
+                name: "Syed Meraj Ahmed",
+                role: "Model Testing & QA",
+                desc: "Validated best.pt with real-world traffic pictures and dashcam videos across day, night, and rain."
+            },
+            {
+                name: "Sourajita Choudhury",
+                role: "Emerging Tech & Research",
+                desc: "Scouted new perception technologies, formulated multi-hazard threat logic, and co-authored the IEEE paper."
+            },
+            {
+                name: "Debankita Das",
+                role: "Research & Paper Formulation",
+                desc: "Investigated spatial risk models, built literature benchmarks, and co-authored the IEEE research paper."
+            }
+        ];
+
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function renderPollCards() {
+            const shuffled = shuffleArray(CREW_MEMBERS);
+            document.getElementById('memberPollGrid').innerHTML = shuffled.map(m => `
+                <div class="elevated-card p-3.5 rounded-xl flex flex-col justify-between border border-[#2a3347] hover:border-emerald-500/60 transition">
+                    <div>
+                        <span class="text-[10px] mono-num uppercase text-sky-400 font-semibold block mb-1">${m.role}</span>
+                        <h4 class="text-sm font-bold text-white mb-1.5">${m.name}</h4>
+                        <p class="text-[11px] text-gray-400 leading-relaxed mb-3">${m.desc}</p>
+                    </div>
+                    <button type="button" onclick="submitMemberVote('${m.name}')" class="w-full py-1.5 rounded-lg bg-[#232b3e] hover:bg-emerald-500 hover:text-[#042419] text-xs font-bold text-white transition cursor-pointer">
+                        👍 Vote
+                    </button>
+                </div>
+            `).join('');
+        }
+        renderPollCards();
+
+        function submitMemberVote(name) {
+            hasVoted = true;
+            
+            // Unlock visual state
+            document.getElementById('vaultStatusDot').className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+            document.getElementById('navLotteryLabel').innerText = "🎰 2. RNG Lottery";
+            document.getElementById('navRedeemLabel').innerText = "🔓 3. Redeem Code";
+            
+            // Toggle view panels from locked to unlocked
+            document.getElementById('lotteryLockedCard').classList.add('hidden');
+            document.getElementById('lotteryUnlockedContent').classList.remove('hidden');
+            document.getElementById('redeemLockedCard').classList.add('hidden');
+            document.getElementById('redeemUnlockedContent').classList.remove('hidden');
+
+            document.getElementById('chosenMemberSpan').innerText = name;
+            const banner = document.getElementById('voteConfirmedBanner');
+            banner.classList.remove('hidden');
+            banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // =====================================================================
+        // 4. RNG LOTTERY & REWARD POOL (CONFIGURED WITH GOOGLE DRIVE LINKS)
+        // =====================================================================
+        const PRIZE_POOL = {
+            first: {
+                tier: "🏆 1st PRIZE // MAIN SOUNDTRACK",
+                title: "Official RoadSense ADAS Theme (music.mpeg)",
+                desc: "You've unlocked the official main background soundtrack of RoadSense ADAS!",
+                url: "music.mpeg",
+                redirectUrl: "https://drive.google.com/file/d/1MKol3ZnOTRjucUFhMYC7wFQ6nSNPIjPB/view?usp=drive_link",
+                downloadUrl: "https://drive.google.com/uc?export=download&id=1MKol3ZnOTRjucUFhMYC7wFQ6nSNPIjPB",
+                type: "audio"
+            },
+            second: {
+                tier: "🥈 2nd PRIZE // EXCLUSIVE RICKROLL",
+                title: "Exclusive Rickroll Master (music1.mpeg)",
+                desc: "You've unlocked the custom exclusive Rickroll anthem!",
+                url: "music1.mpeg",
+                redirectUrl: "https://drive.google.com/file/d/1sIsLznY5wm9eAxj77YQrCGq8ZiA9siyy/view?usp=drive_link",
+                downloadUrl: "https://drive.google.com/uc?export=download&id=1sIsLznY5wm9eAxj77YQrCGq8ZiA9siyy",
+                type: "audio"
+            },
+            videos: [
+                {
+                    tier: "🎬 3rd PRIZE // BTS FIELD VIDEO 1",
+                    title: "Behind-The-Scenes Video 1: Highway Traffic & Cut-In Test",
+                    desc: "Live smartphone telemetry test tracking vehicles in dense Indian traffic.",
+                    url: "Video1.mp4",
+                    redirectUrl: "https://drive.google.com/file/d/121SMIjgqfAwIwrB5OG1aufoUCyVeci8v/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=121SMIjgqfAwIwrB5OG1aufoUCyVeci8v",
+                    type: "video",
+                    isDownload: true
+                },
+                {
+                    tier: "🎬 3rd PRIZE // BTS FIELD VIDEO 2",
+                    title: "Behind-The-Scenes Video 2: HP Victus Laptop Dashcam Test",
+                    desc: "Behind-the-scenes capture testing real-time collision urgency.",
+                    url: "Video2.mp4",
+                    redirectUrl: "https://drive.google.com/file/d/1GCKHFaTwVjJ8PBdlbYYKtd55Mgec3fqM/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1GCKHFaTwVjJ8PBdlbYYKtd55Mgec3fqM",
+                    type: "video",
+                    isDownload: true
+                }
+            ],
+            photos: [
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 1",
+                    title: "Behind-The-Scenes Photo 1: Early Prototype Snapshot",
+                    desc: "Archival snapshot from our perception engine development phase.",
+                    url: "Photo1.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/1ysfzs1DHAB8zW-yP6_N1HIyKMw9dsXdF/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1ysfzs1DHAB8zW-yP6_N1HIyKMw9dsXdF",
+                    type: "image"
+                },
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 2",
+                    title: "Behind-The-Scenes Photo 2: Night Monsoon Rain Test",
+                    desc: "Testing YOLO bounding-box lock through heavy night rain droplets.",
+                    url: "Photo2.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/1M54ohg1QB1HsbtPSVrbFhdvkwpJecLb7/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1M54ohg1QB1HsbtPSVrbFhdvkwpJecLb7",
+                    type: "image"
+                },
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 3",
+                    title: "Behind-The-Scenes Photo 3: TensorRT High-Confidence Lock",
+                    desc: "TensorRT (.engine) benchmark locking onto bus_truck (0.96) & pedestrian.",
+                    url: "Photo3.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/1zJqe3l38hpV_JnVCzSguMAAPoI8_rWK2/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1zJqe3l38hpV_JnVCzSguMAAPoI8_rWK2",
+                    type: "image"
+                },
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 4",
+                    title: "Behind-The-Scenes Photo 4: EDA & Spatial Heatmaps",
+                    desc: "Exploratory Data Analysis showing bounding-box spatial density.",
+                    url: "Photo4.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/1oDCaYXKkJPdXmW7eVpjB4DjnwTka_1jt/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1oDCaYXKkJPdXmW7eVpjB4DjnwTka_1jt",
+                    type: "image"
+                },
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 5",
+                    title: "Behind-The-Scenes Photo 5: Bus Mosaic Batch",
+                    desc: "Training batch mosaic augmentation verifying bus and rider detection.",
+                    url: "Photo5.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/17iaA0iNYfIRYHrJTccIVrC0iyF_QgWAX/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=17iaA0iNYfIRYHrJTccIVrC0iyF_QgWAX",
+                    type: "image"
+                },
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 6",
+                    title: "Behind-The-Scenes Photo 6: Dense Traffic Mosaic",
+                    desc: "IDD training batch with dense multi-class annotations.",
+                    url: "Photo6.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/1XbVzh8i7IAdzIx1bbx3o-9AacgIvXdNa/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1XbVzh8i7IAdzIx1bbx3o-9AacgIvXdNa",
+                    type: "image"
+                },
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 7",
+                    title: "Behind-The-Scenes Photo 7: Jupyter Notebook Verification",
+                    desc: "Dataset verification script plotting green ground-truth YOLO boxes.",
+                    url: "Photo7.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/1lNAl4NDcskxEgVfxdivBCS8zz4lZH-X9/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1lNAl4NDcskxEgVfxdivBCS8zz4lZH-X9",
+                    type: "image"
+                }
+            ]
+        };
+
+        const ACTIVE_REDEEM_KEYS = {};
+
+        function generateTenDigitSteamKey() {
+            const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            let key = "";
+            for (let i = 0; i < 10; i++) {
+                key += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+            }
+
+            const roll = Math.random() * 100;
+            let chosenPrize = null;
+            if (roll < 20) {
+                chosenPrize = PRIZE_POOL.first;
+            } else if (roll < 40) {
+                chosenPrize = PRIZE_POOL.second;
+            } else if (roll < 70) {
+                chosenPrize = PRIZE_POOL.videos[Math.floor(Math.random() * PRIZE_POOL.videos.length)];
+            } else {
+                chosenPrize = PRIZE_POOL.photos[Math.floor(Math.random() * PRIZE_POOL.photos.length)];
+            }
+
+            ACTIVE_REDEEM_KEYS[key] = chosenPrize;
+            return key;
+        }
+
+        function spinRewardRng() {
+            if (hasRolledThisVisit) return;
+
+            const btn = document.getElementById('btnSpinRng');
+            const icon = document.getElementById('slotIcon');
+            const title = document.getElementById('slotTitle');
+            const sub = document.getElementById('slotSub');
+            const card = document.getElementById('wonTicketCard');
+
+            btn.disabled = true;
+            card.classList.add('hidden');
+
+            const icons = ["🏆", "🥈", "🎬", "📸", "⚡", "🎰", "🔓"];
+            let step = 0;
+            const timer = setInterval(() => {
+                icon.innerText = icons[step % icons.length];
+                title.innerText = "GENERATING 10-DIGIT STEAM KEY...";
+                sub.innerText = `Entropy Hash: ${Math.random().toString(36).substring(2, 12).toUpperCase()}`;
+                step++;
+
+                if (step >= 14) {
+                    clearInterval(timer);
+                    hasRolledThisVisit = true;
+                    btn.innerText = "🔒 1 Roll Used Per Visit";
+
+                    const code = generateTenDigitSteamKey();
+                    currentWonCode = code;
+                    const prize = ACTIVE_REDEEM_KEYS[code];
+
+                    icon.innerText = prize.type === 'audio' ? (prize.tier.includes('1st') ? '🏆' : '🥈') : (prize.type === 'video' ? '🎬' : '📸');
+                    title.innerText = prize.tier;
+                    sub.innerText = "Copy your 10-digit key below and enter it in the Redeem Portal!";
+
+                    document.getElementById('wonTierBadge').innerText = prize.tier;
+                    document.getElementById('wonRedeemCode').innerText = code;
+                    card.classList.remove('hidden');
+                }
+            }, 80);
+        }
+
+        function copyWonCode() {
+            if (!currentWonCode) return;
+            navigator.clipboard?.writeText(currentWonCode);
+            const btn = document.getElementById('copyCodeBtn');
+            btn.innerText = "✅ Copied!";
+            setTimeout(() => { btn.innerText = "📋 Copy Key"; }, 2000);
+        }
+
+        function openRedeemPortalTab() {
+            window.location.hash = "redeem";
+            switchPageSection('redeem');
+            const input = document.getElementById('codeInputBox');
+            if (input) {
+                input.value = "";
+                input.focus();
+            }
+        }
+
+        // =====================================================================
+        // 5. REDEEM PORTAL & DIRECT DOWNLOAD/REDIRECT HANDLERS
+        // =====================================================================
+        function redeemEnteredCode() {
+            const rawInput = (document.getElementById('codeInputBox').value || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+            const err = document.getElementById('codeErrorText');
+            const card = document.getElementById('unlockedRewardCard');
+            const stage = document.getElementById('unlockedMediaStage');
+            const btnAction = document.getElementById('directDownloadBtn');
+
+            const item = ACTIVE_REDEEM_KEYS[rawInput];
+            if (!item || rawInput.length !== 10) {
+                err.innerText = "Invalid 10-digit key! Please roll the RNG Lottery first and enter your exact 10-digit key.";
+                err.classList.remove('hidden');
+                card.classList.add('hidden');
+                return;
+            }
+
+            activeUnlockedItem = item;
+            err.classList.add('hidden');
+            document.getElementById('unlockedTierText').innerText = item.tier;
+            document.getElementById('unlockedTitleText').innerText = item.title;
+            document.getElementById('unlockedDescText').innerText = item.desc;
+
+            if (item.isDownload) {
+                btnAction.innerHTML = `📥 Download Video`;
+            } else {
+                btnAction.innerHTML = `↗ Redirect to Media`;
+            }
+
+            if (item.type === 'audio') {
+                stage.innerHTML = `
+                    <div class="p-6 text-center space-y-3 w-full">
+                        <div class="text-4xl">${item.tier.includes('1st') ? '🏆' : '🥈'}</div>
+                        <div class="text-xs text-emerald-400 mono-num">${item.title} — Unlocked</div>
+                        <audio id="rewardAudio" controls src="${item.url}" class="w-full max-w-md mx-auto"></audio>
+                    </div>
+                `;
+            } else if (item.type === 'video') {
+                stage.innerHTML = `
+                    <video id="rewardVideo" controls playsinline src="${item.url}" class="max-h-[340px] w-auto rounded"></video>
+                `;
+            } else {
+                stage.innerHTML = `
+                    <img src="${item.url}" alt="${item.title}" class="max-h-[340px] w-auto object-contain rounded" />
+                `;
+            }
+
+            card.classList.remove('hidden');
+            attachMediaPlaybackHandlers();
+        }
+
+        function attachMediaPlaybackHandlers() {
+            const rewardAudio = document.getElementById('rewardAudio');
+            const rewardVideo = document.getElementById('rewardVideo');
+            const mediaElem = rewardAudio || rewardVideo;
+
+            if (mediaElem) {
+                mediaElem.addEventListener('play', () => {
+                    if (!creditsAudio.paused) {
+                        creditsAudio.pause();
+                        bgAudioWasPlayingBeforeReward = true;
+                    }
+                });
+
+                const restoreBgMusic = () => {
+                    if (bgAudioWasPlayingBeforeReward && audioUnlockOverlay.style.display === 'none' && !document.hidden) {
+                        creditsAudio.play().catch(() => {});
+                        bgAudioWasPlayingBeforeReward = false;
+                    }
+                };
+
+                mediaElem.addEventListener('pause', restoreBgMusic);
+                mediaElem.addEventListener('ended', restoreBgMusic);
+            }
+        }
+
+        function triggerDirectBrowserDownload() {
+            if (!activeUnlockedItem) return;
+            
+            if (activeUnlockedItem.isDownload) {
+                const downloadLink = activeUnlockedItem.downloadUrl || activeUnlockedItem.redirectUrl;
+                window.open(downloadLink, '_blank');
+            } else {
+                const targetUrl = activeUnlockedItem.redirectUrl || activeUnlockedItem.url;
+                window.open(targetUrl, '_blank');
+            }
+        }
+    </script>
+</body>
+</html>
