@@ -28,6 +28,7 @@
             font-variant-numeric: tabular-nums;
             margin: 0;
             padding: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
         .mono-num {
@@ -58,22 +59,56 @@
             color: #042419;
             font-weight: 700;
             border: 1px solid #34d399;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .btn-action:hover:not(:disabled) {
             background-color: #34d399;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+        .btn-action:active:not(:disabled) {
+            transform: translateY(0px);
         }
         .btn-action:disabled {
             opacity: 0.55;
             cursor: not-allowed;
         }
 
+        /* Smooth GPU-accelerated view transitions */
+        @keyframes sectionFadeIn {
+            0% {
+                opacity: 0;
+                transform: translate3d(0, 10px, 0) scale(0.992);
+            }
+            100% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) scale(1);
+            }
+        }
+        .section-animate {
+            animation: sectionFadeIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            will-change: transform, opacity;
+        }
+
+        /* Side-Scrolling Ticker Viewport & Edge Fade Mask */
+        .ticker-mask {
+            mask-image: linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
+        }
+        .side-ticker-runner {
+            display: inline-block;
+            white-space: nowrap;
+            will-change: transform;
+            transform: translate3d(100%, 0, 0);
+        }
+
         @keyframes thankYouPulse {
             0%, 100% {
-                transform: scale(1) translateY(0px);
+                transform: scale(1) translate3d(0, 0, 0);
                 text-shadow: 0 0 22px rgba(16, 185, 129, 0.55), 0 0 45px rgba(56, 189, 248, 0.35);
             }
             50% {
-                transform: scale(1.05) translateY(-3px);
+                transform: scale(1.03) translate3d(0, -2px, 0);
                 text-shadow: 0 0 36px rgba(56, 189, 248, 0.95), 0 0 70px rgba(16, 185, 129, 0.75);
             }
         }
@@ -82,12 +117,12 @@
         }
 
         @keyframes finalePopIn {
-            0% { transform: scale(0.8); opacity: 0.3; }
-            60% { transform: scale(1.04); opacity: 1; }
+            0% { transform: scale(0.88); opacity: 0.3; }
+            60% { transform: scale(1.03); opacity: 1; }
             100% { transform: scale(1); opacity: 1; }
         }
         .finale-unlocked {
-            animation: finalePopIn 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            animation: finalePopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
         @keyframes eqBounce {
@@ -97,23 +132,21 @@
         .eq-1 { animation: eqBounce 0.55s ease-in-out infinite; }
         .eq-2 { animation: eqBounce 0.42s ease-in-out infinite 0.15s; }
         .eq-3 { animation: eqBounce 0.65s ease-in-out infinite 0.28s; }
+        .eq-paused { animation: none !important; height: 4px !important; }
 
-        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #0b0d13; }
         ::-webkit-scrollbar-thumb { background: #2d3548; border-radius: 3px; }
     </style>
 </head>
 <body class="h-[100dvh] w-full flex flex-col justify-between overflow-hidden select-none">
 
-    <!-- BACKGROUND AUDIO ENGINE -->
-    <audio id="creditsAudio" preload="auto" loop>
-        <source src="music.mpeg" type="audio/mpeg">
-        <source src="./music.mpeg" type="audio/mp3">
-    </audio>
+    <!-- BACKGROUND AUDIO ENGINE (Supports music.mpeg, Mitadru.mp3/.mpeg, Ritam.mp3/.mpeg) -->
+    <audio id="creditsAudio" preload="auto" loop></audio>
 
     <!-- TAP-TO-START OVERLAY -->
-    <div id="audioUnlockOverlay" style="display: none;" onclick="unlockAudioAndStart()" class="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-6 text-center cursor-pointer">
-        <div class="instrument-panel p-6 sm:p-8 rounded-2xl max-w-md w-full border border-emerald-500/40 space-y-4">
+    <div id="audioUnlockOverlay" style="display: none;" onclick="unlockAudioAndStart()" class="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-6 text-center cursor-pointer backdrop-blur-sm">
+        <div class="instrument-panel p-6 sm:p-8 rounded-2xl max-w-md w-full border border-emerald-500/40 space-y-4 section-animate">
             <div class="text-4xl">🎬</div>
             <span class="px-2.5 py-0.5 text-[11px] mono-num font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded">
                 THE GHOSTS // END CREDITS
@@ -125,75 +158,131 @@
                 Tap anywhere to synchronize audio and roll the engineering credits.
             </p>
             <button type="button" class="btn-action w-full py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-pointer">
-                ▶ Enter Credits Experience
+                ▶ Start Experience
             </button>
         </div>
     </div>
 
     <!-- TOP NAVIGATION HEADER -->
-    <header class="w-full max-w-6xl mx-auto px-3 sm:px-6 py-3 border-b border-[#232938] flex flex-wrap items-center justify-between gap-2 shrink-0 bg-[#07090d]/95 z-30">
-        <div class="flex items-center gap-2.5">
-            <span id="vaultStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-            <h1 class="text-sm sm:text-base font-bold text-white tracking-tight">
-                ROADSENSE // END CREDITS & VAULT
-            </h1>
-        </div>
-
-        <!-- 3-VIEW NAVIGATION WITH LOCK STATUS -->
-        <div class="flex items-center gap-1 bg-[#111520] p-1 rounded-xl border border-[#252d3f]">
-            <button type="button" id="navCredits" onclick="switchPageSection('credits')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-500 text-[#042419] transition cursor-pointer">
-                1. Credits & Vote
-            </button>
-            <button type="button" id="navLottery" onclick="switchPageSection('lottery')" class="px-3 py-1 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">
-                <span id="navLotteryLabel">🔒 2. RNG Lottery</span>
-            </button>
-            <button type="button" id="navRedeem" onclick="switchPageSection('redeem')" class="px-3 py-1 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">
-                <span id="navRedeemLabel">🔒 3. Redeem Code</span>
-            </button>
-        </div>
-
-        <!-- AUDIO CLOCK & EXIT BUTTON -->
-        <div class="flex items-center gap-2">
-            <div class="flex items-center gap-2 px-2.5 py-1 rounded-lg recessed-well border border-[#263044]">
-                <div class="flex items-end gap-0.5 h-3.5">
-                    <span class="w-1 bg-emerald-400 eq-1 rounded-full"></span>
-                    <span class="w-1 bg-sky-400 eq-2 rounded-full"></span>
-                    <span class="w-1 bg-emerald-400 eq-3 rounded-full"></span>
+    <header class="w-full border-b border-[#232938] bg-[#07090d]/95 backdrop-blur-md shrink-0 z-30">
+        <div class="w-full max-w-6xl mx-auto px-3 sm:px-6 py-2.5 flex flex-col lg:flex-row items-center justify-between gap-2.5">
+            
+            <!-- Brand & Mobile Controls -->
+            <div class="w-full lg:w-auto flex items-center justify-between gap-2 shrink-0">
+                <div class="flex items-center gap-2 min-w-0">
+                    <span id="vaultStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
+                    <h1 class="text-xs sm:text-sm xl:text-base font-bold text-white tracking-tight whitespace-nowrap">
+                        ROADSENSE // CREDITS & VAULT
+                    </h1>
+                    <span id="activeTrackBadge" class="px-2 py-0.5 text-[10px] mono-num font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 rounded whitespace-nowrap">
+                        OST: DEFAULT
+                    </span>
                 </div>
-                <span id="songClock" class="mono-num text-[11px] text-gray-200">00:00</span>
-                <button type="button" id="muteToggleBtn" onclick="toggleAudioMute()" class="text-[11px] text-sky-400 hover:text-sky-300 font-semibold ml-1 cursor-pointer">
-                    Mute
-                </button>
+
+                <!-- Mobile Audio Clock & Exit -->
+                <div class="flex items-center gap-1.5 lg:hidden shrink-0">
+                    <div class="flex items-center gap-1.5 px-2 py-1 rounded-lg recessed-well border border-[#263044]">
+                        <div class="flex items-end gap-0.5 h-3">
+                            <span class="eq-bar w-0.5 bg-emerald-400 eq-1 rounded-full"></span>
+                            <span class="eq-bar w-0.5 bg-sky-400 eq-2 rounded-full"></span>
+                            <span class="eq-bar w-0.5 bg-emerald-400 eq-3 rounded-full"></span>
+                        </div>
+                        <span id="songClockMobile" class="mono-num text-[10px] text-gray-200">00:00</span>
+                        <button type="button" onclick="toggleAudioMute()" class="mute-btn-label text-[10px] text-sky-400 hover:text-sky-300 font-semibold ml-0.5 cursor-pointer">
+                            Mute
+                        </button>
+                    </div>
+                    <button type="button" onclick="exitCreditsToCockpit()" class="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold transition cursor-pointer">
+                        ✕
+                    </button>
+                </div>
             </div>
 
-            <button type="button" onclick="exitCreditsToCockpit()" class="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition cursor-pointer">
-                ✕ Exit
-            </button>
+            <!-- 4-VIEW NAVIGATION PILLS -->
+            <nav class="w-full lg:w-auto grid grid-cols-2 sm:flex items-center justify-center gap-1 bg-[#111520] p-1 rounded-xl border border-[#252d3f]">
+                <button type="button" id="navCredits" onclick="switchPageSection('credits')" class="px-3 py-1.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-semibold bg-emerald-500 text-[#042419] transition-all duration-200 cursor-pointer text-center whitespace-nowrap">
+                    1. Credits & Vote
+                </button>
+                <button type="button" id="navLottery" onclick="switchPageSection('lottery')" class="px-3 py-1.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-semibold text-gray-300 hover:text-white transition-all duration-200 cursor-pointer text-center whitespace-nowrap">
+                    <span id="navLotteryLabel">🔒 2. RNG Lottery</span>
+                </button>
+                <button type="button" id="navRedeem" onclick="switchPageSection('redeem')" class="px-3 py-1.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-semibold text-gray-300 hover:text-white transition-all duration-200 cursor-pointer text-center whitespace-nowrap">
+                    <span id="navRedeemLabel">🔒 3. Redeem Code</span>
+                </button>
+                <button type="button" id="navLeaderboard" onclick="switchPageSection('leaderboard')" class="px-3 py-1.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-semibold text-gray-300 hover:text-white transition-all duration-200 cursor-pointer text-center whitespace-nowrap">
+                    📊 4. Leaderboard
+                </button>
+            </nav>
+
+            <!-- DESKTOP AUDIO CONTROLLER & EXIT -->
+            <div class="hidden lg:flex items-center gap-2 shrink-0">
+                <div class="flex items-center gap-2 px-2.5 py-1 rounded-lg recessed-well border border-[#263044]">
+                    <div class="flex items-end gap-0.5 h-3.5">
+                        <span class="eq-bar w-1 bg-emerald-400 eq-1 rounded-full"></span>
+                        <span class="eq-bar w-1 bg-sky-400 eq-2 rounded-full"></span>
+                        <span class="eq-bar w-1 bg-emerald-400 eq-3 rounded-full"></span>
+                    </div>
+                    <span id="songClock" class="mono-num text-[11px] text-gray-200">00:00</span>
+                    <button type="button" id="muteToggleBtn" onclick="toggleAudioMute()" class="mute-btn-label text-[11px] text-sky-400 hover:text-sky-300 font-semibold ml-1 cursor-pointer">
+                        Mute
+                    </button>
+                </div>
+
+                <button type="button" onclick="exitCreditsToCockpit()" class="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition cursor-pointer whitespace-nowrap">
+                    ✕ Exit
+                </button>
+            </div>
         </div>
     </header>
 
     <!-- SCROLLABLE MAIN VIEWPORT -->
-    <main id="creditsScrollViewport" class="flex-1 w-full max-w-5xl mx-auto overflow-y-auto px-3 sm:px-6 py-5">
+    <main id="creditsScrollViewport" class="flex-1 w-full max-w-5xl mx-auto overflow-y-auto px-3 sm:px-6 py-4 sm:py-5">
 
-        <!-- SECTION 1: CREDITS & POLL -->
-        <section id="viewCreditsAndVote" class="space-y-8 pb-12">
+        <!-- =================================================================== -->
+        <!-- SIDE-SCROLLING LIVE BROADCAST BAR                                   -->
+        <!-- - New Vote glides from right to left STRICTLY ONCE (1 pass only)    -->
+        <!-- - Leaderboard Standings glide from right to left UNLIMITEDLY        -->
+        <!-- =================================================================== -->
+        <div id="liveNewsTickerBar" class="hidden mb-4 instrument-panel rounded-xl border border-emerald-500/35 overflow-hidden shadow-lg">
+            <div class="px-3 sm:px-4 py-2 flex items-center justify-between gap-2.5">
+                <span id="liveFeedBadge" class="px-2.5 py-0.5 text-[10px] mono-num font-extrabold uppercase bg-amber-400 text-[#1a1202] rounded-md shrink-0 flex items-center gap-1.5 shadow-sm">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#1a1202] animate-ping"></span>
+                    <span id="liveFeedBadgeText">🏆 LEADERBOARD</span>
+                </span>
 
-            <div class="instrument-panel p-3 rounded-xl flex flex-wrap items-center justify-between gap-2">
-                <div class="text-xs text-gray-300">
-                    🎬 <strong class="text-white">Engineering Roll:</strong> <span class="text-emerald-400">The Unofficial Best Project Crew</span>
+                <!-- Side-Scrolling Viewport -->
+                <div id="liveFeedViewport" class="flex-1 overflow-hidden relative h-5 flex items-center ticker-mask min-w-0">
+                    <div id="liveFeedRunner" class="side-ticker-runner mono-num text-xs sm:text-sm text-gray-100 font-medium"></div>
+                </div>
+
+                <span id="liveFeedStepCounter" class="mono-num text-[10px] text-gray-400 px-2 py-0.5 rounded recessed-well shrink-0 hidden sm:inline-block">
+                    LIVE
+                </span>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 1: END CREDITS + ANIMATED FINALE + AUTHENTICATED TEAM POLL  -->
+        <!-- =================================================================== -->
+        <section id="viewCreditsAndVote" class="space-y-6 sm:space-y-8 pb-12 section-animate">
+
+            <!-- Roll Control Bar -->
+            <div class="instrument-panel p-3 sm:px-4 rounded-xl flex flex-wrap items-center justify-between gap-2">
+                <div class="text-xs text-gray-300 flex items-center gap-2">
+                    <span>🎬 <strong class="text-white">Engineering Roll:</strong> <span class="text-emerald-400">The Unofficial Best Project Crew</span></span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" id="btnAutoScroll" onclick="toggleAutoScroll()" class="px-2.5 py-1 rounded-md bg-[#1c2333] hover:bg-[#263046] text-xs text-sky-300 border border-sky-500/30 cursor-pointer">
-                        ⏸ Pause Auto-Roll
+                    <button type="button" id="btnAutoScroll" onclick="toggleAutoScroll()" class="px-2.5 py-1 rounded-md bg-[#1c2333] hover:bg-[#263046] text-xs text-sky-300 border border-sky-500/30 transition cursor-pointer">
+                        ⏸ Pause Roll
                     </button>
-                    <button type="button" onclick="jumpToVote()" class="px-2.5 py-1 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-xs text-emerald-300 border border-emerald-500/40 font-semibold cursor-pointer">
-                        ⬇ Skip to Finale & Poll
+                    <button type="button" onclick="jumpToVote()" class="px-2.5 py-1 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-xs text-emerald-300 border border-emerald-500/40 font-semibold transition cursor-pointer">
+                        ⬇ Skip to Poll
                     </button>
                 </div>
             </div>
 
             <!-- CINEMATIC CREDITS ROLL CARD -->
-            <div class="instrument-panel rounded-2xl p-6 sm:p-10 text-center space-y-10 border border-[#2a3347]">
+            <div class="instrument-panel rounded-2xl p-5 sm:p-10 text-center space-y-8 sm:space-y-10 border border-[#2a3347]">
 
                 <div class="space-y-2">
                     <span class="mono-num text-[11px] uppercase tracking-widest text-emerald-400 font-bold block">
@@ -202,14 +291,14 @@
                     <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-wide">
                         ROADSENSE: ADAS NEURAL PERCEPTION
                     </h2>
-                    <p class="text-xs sm:text-sm text-gray-400 max-w-2xl mx-auto">
+                    <p class="text-xs sm:text-sm text-gray-400 max-w-2xl mx-auto leading-relaxed">
                         Real-Time Monocular Depth Fusion, Dual-Geometry Disagreement (DGI) & Multi-Hazard Risk Arbitration for Unstructured Indian Traffic
                     </p>
                 </div>
 
                 <div class="w-24 h-[1px] bg-[#283145] mx-auto"></div>
 
-                <!-- 1. CORE SYSTEM ARCHITECTURE -->
+                <!-- 1. CORE SYSTEM ARCHITECTURE, BACKEND, FRONTEND & MODEL TRAINING -->
                 <div class="space-y-3.5 max-w-2xl mx-auto">
                     <span class="mono-num text-[11px] uppercase tracking-widest text-sky-400 font-bold block">
                         SYSTEM ARCHITECTURE, FULL-STACK ENGINE & NEURAL TRAINING
@@ -218,20 +307,20 @@
                         Mitadru Karmakar
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left text-xs text-gray-300 pt-1">
-                        <div class="recessed-well p-3 rounded-lg">
-                            <strong class="text-emerald-400 block mb-0.5">Backend & Zero-Lag Streaming</strong>
+                        <div class="recessed-well p-3.5 rounded-lg">
+                            <strong class="text-emerald-400 block mb-1">Backend & Zero-Lag Streaming</strong>
                             Engineered the FastAPI asynchronous perception server, WebSocket lockstep handshake, and mobile single-slot drop queue.
                         </div>
-                        <div class="recessed-well p-3 rounded-lg">
-                            <strong class="text-emerald-400 block mb-0.5">250-Epoch Model Training</strong>
-                            Migrated YOLOv8 to YOLO26, trained 250 epochs at 1024px resolution (jumping from 36% to 73% mAP), and built TensorRT FP16 acceleration.
+                        <div class="recessed-well p-3.5 rounded-lg">
+                            <strong class="text-emerald-400 block mb-1">250-Epoch Model Training</strong>
+                            Migrated YOLOv8 to YOLO26, trained 250 epochs at 1024px resolution (36% to 73% mAP), and built TensorRT FP16 acceleration.
                         </div>
-                        <div class="recessed-well p-3 rounded-lg">
-                            <strong class="text-emerald-400 block mb-0.5">Kinematics & DGC Arbitrator</strong>
+                        <div class="recessed-well p-3.5 rounded-lg">
+                            <strong class="text-emerald-400 block mb-1">Kinematics & DGC Arbitrator</strong>
                             Developed Dual-Geometry Consistency (DGC), ground-plane auto-rickshaw disambiguation, and cross-class rider pruning.
                         </div>
-                        <div class="recessed-well p-3 rounded-lg">
-                            <strong class="text-emerald-400 block mb-0.5">Autonomous Cockpit Frontend</strong>
+                        <div class="recessed-well p-3.5 rounded-lg">
+                            <strong class="text-emerald-400 block mb-1">Autonomous Cockpit Frontend</strong>
                             Designed the responsive desktop & mobile telemetry UI, 30-meter spatial radar, and interactive Easter egg portals.
                         </div>
                     </div>
@@ -302,108 +391,218 @@
                 </div>
 
                 <!-- ANIMATED THANK YOU FINALE -->
-                <div id="thankYouFinaleBox" class="pt-6 pb-2 transition-all duration-700">
-                    <div id="thankYouCardInner" class="inline-block px-7 py-5 rounded-2xl elevated-card border-2 border-emerald-500/50 shadow-2xl">
-                        <div class="text-2xl sm:text-4xl font-black text-white tracking-wider thank-you-finale">
+                <div id="thankYouFinaleBox" class="pt-4 pb-2 transition-all duration-700">
+                    <div id="thankYouCardInner" class="inline-block px-5 sm:px-8 py-4 sm:py-5 rounded-2xl elevated-card border-2 border-emerald-500/50 shadow-2xl">
+                        <div class="text-xl sm:text-4xl font-black text-white tracking-wider thank-you-finale">
                             🌟 THANK YOU FOR WATCHING! 🌟
                         </div>
                         <p class="text-xs sm:text-sm text-emerald-300 mt-2">
-                            Vote for your favorite crew member below to unlock your RNG Behind-The-Scenes Vault Spin!
+                            Authenticate with your 4-digit Voter ID below to cast your vote and unlock the Telemetry Vault!
                         </p>
                     </div>
                 </div>
 
             </div>
 
-            <!-- UNBIASED COMMUNITY POLL -->
-            <div id="voteSection" class="instrument-panel rounded-2xl p-5 sm:p-7 border border-[#2f384d]">
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#232938] pb-3 mb-4">
+            <!-- =============================================================== -->
+            <!-- AUTHENTICATED COMMUNITY POLL & ACCOUNT SWITCHER                 -->
+            <!-- =============================================================== -->
+            <div id="voteSection" class="instrument-panel rounded-2xl p-4 sm:p-7 border border-[#2f384d] space-y-5">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#232938] pb-3">
                     <div>
                         <span class="text-[10px] mono-num uppercase tracking-wider text-amber-400 font-bold block">
-                            UNBIASED COMMUNITY POLL
+                            AUTHENTICATED TEAM POLL
                         </span>
                         <h3 class="text-lg sm:text-xl font-bold text-white">
                             Vote for Your Favorite Project Member
                         </h3>
                     </div>
                     <span class="text-xs text-gray-400">
-                        Randomized card order on every load &bull; Voting unlocks 1 RNG Vault Spin
+                        4-Digit Voter ID Required &bull; 1 Vote Per ID
                     </span>
                 </div>
 
-                <div id="memberPollGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3"></div>
-
-                <div id="voteConfirmedBanner" class="hidden mt-5 p-4 rounded-xl bg-emerald-950/70 border border-emerald-500/60 flex flex-wrap items-center justify-between gap-3">
-                    <div class="text-xs sm:text-sm text-emerald-200">
-                        🎉 <strong class="text-white">Vote Registered for <span id="chosenMemberSpan" class="text-emerald-300 underline"></span>!</strong> Clearance granted: You have unlocked the RNG Telemetry Vault.
+                <!-- STEP 1: LOGIN / ACTIVE ACCOUNT BAR -->
+                <div class="recessed-well p-3.5 sm:p-4 rounded-xl border border-[#2e384d] space-y-3">
+                    
+                    <!-- Login Input View -->
+                    <div id="voterLoginFormView" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                        <div class="space-y-0.5">
+                            <span class="text-[10px] mono-num uppercase tracking-wider text-emerald-400 font-bold block">
+                                🔑 STEP 1: VOTER AUTHENTICATION
+                            </span>
+                            <div class="text-xs text-gray-300">
+                                Enter your assigned 4-digit Voter ID (<code class="text-amber-300 mono-num">XXXX</code>) to unlock voting & custom themes.
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="voterIdInput" maxlength="4" autocomplete="off" spellcheck="false" placeholder="XXXX" oninput="handleVoterIdInputChange()" onkeydown="if(event.key==='Enter') validateVoterId()" class="recessed-well px-3 py-2 rounded-lg text-xs sm:text-sm mono-num text-white border border-[#37435e] focus:outline-none focus:border-emerald-400 uppercase tracking-widest w-full sm:w-32 text-center" />
+                            <button type="button" onclick="validateVoterId()" class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#042419] text-xs font-bold transition cursor-pointer shrink-0">
+                                Login ID
+                            </button>
+                        </div>
                     </div>
-                    <button type="button" onclick="switchPageSection('lottery')" class="btn-action px-4 py-2 rounded-lg text-xs uppercase tracking-wider cursor-pointer">
-                        🎰 Open RNG Lottery Vault &rarr;
-                    </button>
+
+                    <!-- Logged-In Account View -->
+                    <div id="voterLoggedInView" class="hidden flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#121824] p-3 rounded-lg border border-emerald-500/40">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
+                            <div>
+                                <div class="text-[10px] mono-num uppercase text-emerald-400 font-bold">
+                                    AUTHENTICATED SESSION ACTIVE
+                                </div>
+                                <div id="loggedInUserLabel" class="text-xs sm:text-sm font-bold text-white">
+                                    Verified Voter
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="switchVoterAccount()" class="px-3.5 py-1.5 rounded-lg bg-[#232b3e] hover:bg-amber-500 hover:text-[#042419] text-xs font-bold text-amber-300 border border-amber-500/40 transition cursor-pointer shrink-0 w-full sm:w-auto text-center">
+                            ⇄ Switch Account / Change ID
+                        </button>
+                    </div>
+
+                    <!-- Status Feedback Banner -->
+                    <div id="voterIdStatus" class="text-xs font-semibold py-1.5 px-3 rounded hidden"></div>
+                </div>
+
+                <!-- ADMIN CONTROL PANEL (ONLY VISIBLE WHEN LOGGED IN AS 0000) -->
+                <div id="adminPanelCard" class="hidden p-4 sm:p-5 rounded-xl elevated-card border-2 border-sky-500/50 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#232b3e] pb-2.5">
+                        <span class="text-xs font-extrabold text-sky-300 mono-num uppercase flex items-center gap-1.5">
+                            🛠️ ADMIN CONTROL PANEL // ID & POLL MANAGER
+                        </span>
+                        <span class="text-[10px] mono-num bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded border border-sky-500/40">
+                            ROOT ACCESS
+                        </span>
+                    </div>
+
+                    <!-- Add Guest Voter ID -->
+                    <div class="recessed-well p-3.5 rounded-xl border border-[#283248] space-y-2.5">
+                        <div class="text-xs font-bold text-white">
+                            ➕ Add Voter ID (With Optional Name/Tag or ID-Only)
+                        </div>
+                        <p class="text-[11px] text-gray-400">
+                            Create new 4-digit IDs. If you enter a Name/Tag, the live feed will show that Name/Tag when they vote; if left blank, the live feed will show their ID.
+                        </p>
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+                            <input type="text" id="newGuestIdInput" maxlength="4" placeholder="4-Digit ID (XXXX)" class="recessed-well px-3 py-1.5 rounded-lg text-xs mono-num text-white border border-[#36425e] focus:outline-none focus:border-sky-400 uppercase tracking-widest sm:w-36 text-center" />
+                            <input type="text" id="newGuestLabelInput" maxlength="28" placeholder="Name or Tag (Leave blank to show ID only)" class="recessed-well px-3 py-1.5 rounded-lg text-xs text-white border border-[#36425e] focus:outline-none focus:border-sky-400 flex-1" />
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" onclick="adminAddGuestVoterId()" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#042419] text-xs font-bold transition cursor-pointer whitespace-nowrap">
+                                    ➕ Add ID
+                                </button>
+                                <button type="button" onclick="adminGenerateRandomGuestId()" class="px-3 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-bold transition cursor-pointer whitespace-nowrap">
+                                    🎲 Random ID
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Registered Voter IDs Directory -->
+                    <div class="recessed-well p-3.5 rounded-xl border border-[#283248] space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-white">📋 Registered Voter IDs (Core Protected vs Added)</span>
+                            <span id="adminRegistryCount" class="text-[11px] mono-num text-gray-400"></span>
+                        </div>
+                        <div id="adminVoterRegistryList" class="max-h-48 overflow-y-auto space-y-1.5 pr-1"></div>
+                    </div>
+
+                    <!-- Global Poll Reset Controls -->
+                    <div class="flex flex-wrap items-center gap-2 text-xs pt-1">
+                        <button type="button" onclick="adminResetOfficialVotes()" class="px-3 py-1.5 rounded-lg bg-red-950/80 hover:bg-red-900 border border-red-500/50 text-red-200 font-semibold cursor-pointer">
+                            🔄 Reset Official Votes
+                        </button>
+                        <button type="button" onclick="adminClearUsedIds()" class="px-3 py-1.5 rounded-lg bg-amber-950/80 hover:bg-amber-900 border border-amber-500/50 text-amber-200 font-semibold cursor-pointer">
+                            🧹 Reset Used Status
+                        </button>
+                        <button type="button" onclick="adminClearTestVotes()" class="px-3 py-1.5 rounded-lg bg-purple-950/80 hover:bg-purple-900 border border-purple-500/50 text-purple-200 font-semibold cursor-pointer">
+                            🗑️ Clear Test Votes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 5-MEMBER SHUFFLED POLL GRID -->
+                <div id="memberPollGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1"></div>
+
+                <!-- POST-VOTE UNLOCK BANNER -->
+                <div id="voteConfirmedBanner" class="hidden mt-4 p-4 rounded-xl bg-emerald-950/70 border border-emerald-500/60 flex flex-wrap items-center justify-between gap-3">
+                    <div class="text-xs sm:text-sm text-emerald-200">
+                        🎉 <strong class="text-white">Vote Registered for <span id="chosenMemberSpan" class="text-emerald-300 underline font-bold"></span>!</strong> Clearance granted: RNG Telemetry Vault unlocked.
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="switchPageSection('leaderboard')" class="px-3.5 py-2 rounded-lg bg-[#1a2333] hover:bg-[#253248] text-xs font-bold text-sky-300 border border-sky-500/40 transition cursor-pointer">
+                            📊 Leaderboard
+                        </button>
+                        <button type="button" onclick="switchPageSection('lottery')" class="btn-action px-4 py-2 rounded-lg text-xs uppercase tracking-wider cursor-pointer">
+                            🎰 Open RNG Vault &rarr;
+                        </button>
+                    </div>
                 </div>
             </div>
 
         </section>
 
-        <!-- SECTION 2: RNG REWARD LOTTERY (GATED BY VOTE) -->
+        <!-- =================================================================== -->
+        <!-- SECTION 2: RNG REWARD LOTTERY (GATED BY VOTE)                       -->
+        <!-- =================================================================== -->
         <section id="viewRngLottery" style="display: none;" class="space-y-6 pb-12">
             
-            <!-- LOCKED STATE OVERLAY CARD (Shown if user hasn't voted) -->
-            <div id="lotteryLockedCard" class="instrument-panel rounded-2xl p-8 sm:p-12 text-center max-w-2xl mx-auto border-2 border-amber-500/50 space-y-5">
-                <div class="text-6xl animate-bounce">🔒</div>
+            <!-- LOCKED STATE CARD -->
+            <div id="lotteryLockedCard" class="instrument-panel rounded-2xl p-6 sm:p-12 text-center max-w-2xl mx-auto border-2 border-amber-500/50 space-y-5">
+                <div class="text-5xl sm:text-6xl animate-bounce">🔒</div>
                 <div class="space-y-2">
                     <span class="px-3 py-1 text-[11px] mono-num font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded">
                         ACCESS DENIED // VOTE REQUIRED
                     </span>
-                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+                    <h2 class="text-xl sm:text-3xl font-extrabold text-white">
                         Vault RNG Loot Box Locked
                     </h2>
                     <p class="text-xs sm:text-sm text-gray-300 max-w-lg mx-auto">
-                        You must cast your vote for your favorite engineering team member in the Team Poll before spinning the Telemetry Vault.
+                        Authenticate with your 4-digit Voter ID and cast your vote in the Team Poll to unlock the Telemetry Vault.
                     </p>
                 </div>
                 <div class="pt-2">
                     <button type="button" onclick="jumpToVoteSectionAndHighlight()" class="btn-action px-6 py-3 rounded-xl text-xs uppercase tracking-wider cursor-pointer shadow-lg shadow-emerald-500/20">
-                        🗳️ Cast Your Vote to Unlock Vault &rarr;
+                        🗳️ Cast Vote to Unlock &rarr;
                     </button>
                 </div>
             </div>
 
-            <!-- UNLOCKED CONTENT (Shown after vote is registered) -->
+            <!-- UNLOCKED LOTTERY CONTENT -->
             <div id="lotteryUnlockedContent" class="hidden space-y-6">
-                <div class="instrument-panel rounded-2xl p-6 sm:p-8 text-center max-w-2xl mx-auto border border-[#2f384d]">
+                <div class="instrument-panel rounded-2xl p-5 sm:p-8 text-center max-w-2xl mx-auto border border-[#2f384d]">
                     <span class="px-2.5 py-0.5 text-[11px] mono-num font-bold uppercase bg-purple-500/15 text-purple-300 border border-purple-500/30 rounded">
                         RNG TELEMETRY LOOT BOX // UNLOCKED
                     </span>
-                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">
+                    <h2 class="text-xl sm:text-3xl font-extrabold text-white mt-2">
                         Roll for Behind-The-Scenes Rewards
                     </h2>
                     <p class="text-xs sm:text-sm text-gray-400 mt-1">
-                        Spin the RNG generator once per visit to generate a 10-digit key for our Main Soundtrack, Mythic Rickroll, Field Test Videos, or EDA Photos!
+                        Spin once per session to generate a 10-digit key for our Studio Tracks, Field Test Videos, or Lab EDA Photos.
                     </p>
 
-                    <!-- Prize Tiers Display -->
+                    <!-- Prize Tiers -->
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 my-5 text-xs">
-                        <div class="recessed-well p-2 rounded-lg border border-amber-500/40">
-                            <span class="text-amber-400 font-bold block">🏆 1st PRIZE</span>
-                            <span class="text-gray-300 text-[11px]">Main Music Track</span>
+                        <div class="recessed-well p-2.5 rounded-lg border border-amber-500/40">
+                            <span class="text-amber-400 font-bold block">🏆 1st PRIZE (20%)</span>
+                            <span class="text-gray-300 text-[11px]">Main Studio Track</span>
                         </div>
-                        <div class="recessed-well p-2 rounded-lg border border-yellow-500/40">
-                            <span class="text-yellow-400 font-bold block">🥈 2nd PRIZE</span>
-                            <span class="text-gray-300 text-[11px]">Rickroll Audio</span>
+                        <div class="recessed-well p-2.5 rounded-lg border border-yellow-500/40">
+                            <span class="text-yellow-400 font-bold block">🥈 2nd PRIZE (20%)</span>
+                            <span class="text-gray-300 text-[11px]">Mystery Audio</span>
                         </div>
-                        <div class="recessed-well p-2 rounded-lg border border-purple-500/40">
-                            <span class="text-purple-300 font-bold block">🎬 3rd PRIZE</span>
+                        <div class="recessed-well p-2.5 rounded-lg border border-purple-500/40">
+                            <span class="text-purple-300 font-bold block">🎬 3rd PRIZE (30%)</span>
                             <span class="text-gray-300 text-[11px]">BTS Field Videos</span>
                         </div>
-                        <div class="recessed-well p-2 rounded-lg border border-sky-500/40">
-                            <span class="text-sky-300 font-bold block">📸 4th PRIZE</span>
+                        <div class="recessed-well p-2.5 rounded-lg border border-sky-500/40">
+                            <span class="text-sky-300 font-bold block">📸 4th PRIZE (30%)</span>
                             <span class="text-gray-300 text-[11px]">BTS EDA Photos</span>
                         </div>
                     </div>
 
                     <!-- RNG Slot Display -->
-                    <div class="recessed-well rounded-xl p-6 my-4 border-2 border-[#2a3347] min-h-[135px] flex flex-col items-center justify-center">
+                    <div class="recessed-well rounded-xl p-5 sm:p-6 my-4 border-2 border-[#2a3347] min-h-[135px] flex flex-col items-center justify-center">
                         <div id="slotIcon" class="text-4xl mb-1.5">🎲</div>
                         <div id="slotTitle" class="text-base sm:text-lg font-bold text-white mono-num">
                             READY TO SPIN RNG
@@ -413,7 +612,7 @@
                         </div>
                     </div>
 
-                    <button type="button" id="btnSpinRng" onclick="spinRewardRng()" class="btn-action px-6 py-3 rounded-xl text-sm uppercase tracking-wider cursor-pointer">
+                    <button type="button" id="btnSpinRng" onclick="spinRewardRng()" class="btn-action px-6 py-3 rounded-xl text-xs sm:text-sm uppercase tracking-wider cursor-pointer">
                         🎰 Roll RNG Lottery (1 Left)
                     </button>
 
@@ -423,52 +622,25 @@
                             <span id="wonTierBadge" class="text-[11px] mono-num font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
                                 MYTHIC PRIZE
                             </span>
-                            <span class="text-xs text-gray-400">Copy & Enter in Redeem Portal</span>
+                            <span class="text-xs text-gray-400">Copy & Paste in Redeem Code Tab</span>
                         </div>
 
                         <div class="flex flex-wrap items-center justify-between gap-2 recessed-well p-3 rounded-lg">
                             <div>
-                                <div class="text-[10px] uppercase text-gray-400">Your 10-Digit Steam-Style Key:</div>
+                                <div class="text-[10px] uppercase text-gray-400">Your 10-Digit Key:</div>
                                 <div id="wonRedeemCode" class="mono-num text-base sm:text-lg font-bold text-emerald-400 tracking-widest select-all">
                                     8K4F9L2M7W
                                 </div>
                             </div>
-                            <button type="button" id="copyCodeBtn" onclick="copyWonCode()" class="px-3 py-1.5 rounded bg-[#232b3d] hover:bg-[#2f3952] text-xs font-semibold text-white cursor-pointer">
+                            <button type="button" id="copyCodeBtn" onclick="copyWonCode()" class="px-3.5 py-1.5 rounded-lg bg-[#232b3d] hover:bg-[#2f3952] text-xs font-semibold text-white transition cursor-pointer">
                                 📋 Copy Key
                             </button>
                         </div>
 
-                        <div class="flex items-center justify-between pt-1">
-                            <span class="text-[11px] text-gray-400"><a href="" onclick="openRedeemPortalTab(); return false;" class="text-sky-400 underline"></a></span>
-                            <button type="button" onclick="openRedeemPortalTab()" class="btn-action px-4 py-2 rounded-lg text-xs cursor-pointer">
-                                🔗 Go to Redeem Code Portal &rarr;
+                        <div class="flex justify-end pt-1">
+                            <button type="button" onclick="openRedeemPortalTab()" class="btn-action px-5 py-2 rounded-lg text-xs cursor-pointer">
+                                🔗 Go to Redeem Portal &rarr;
                             </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- RNG PROBABILITY TABLE (RICH CONTENT) -->
-                <div class="instrument-panel rounded-2xl p-5 max-w-2xl mx-auto border border-[#232938] text-xs space-y-3">
-                    <div class="flex items-center justify-between border-b border-[#1c2333] pb-2">
-                        <span class="font-bold text-white uppercase mono-num">📊 Telemetry Loot Box Drop Probabilities</span>
-                        <span class="text-emerald-400 font-semibold">1 Roll / Session</span>
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-gray-300">
-                        <div class="recessed-well p-2 rounded">
-                            <span class="block font-bold text-amber-400">20% Odds</span>
-                            <span class="text-[10px] text-gray-400">1st Prize Main Music</span>
-                        </div>
-                        <div class="recessed-well p-2 rounded">
-                            <span class="block font-bold text-yellow-400">20% Odds</span>
-                            <span class="text-[10px] text-gray-400">2nd Prize Rickroll</span>
-                        </div>
-                        <div class="recessed-well p-2 rounded">
-                            <span class="block font-bold text-purple-300">30% Odds</span>
-                            <span class="text-[10px] text-gray-400">3rd Prize Field Video</span>
-                        </div>
-                        <div class="recessed-well p-2 rounded">
-                            <span class="block font-bold text-sky-300">30% Odds</span>
-                            <span class="text-[10px] text-gray-400">4th Prize EDA Photo</span>
                         </div>
                     </div>
                 </div>
@@ -476,47 +648,63 @@
 
         </section>
 
-        <!-- SECTION 3: REDEEM CODE PORTAL (GATED BY VOTE) -->
+        <!-- =================================================================== -->
+        <!-- SECTION 3: REDEEM CODE PORTAL                                       -->
+        <!-- =================================================================== -->
         <section id="viewRedeemPortal" style="display: none;" class="space-y-6 pb-12">
             
-            <!-- LOCKED STATE OVERLAY CARD -->
-            <div id="redeemLockedCard" class="instrument-panel rounded-2xl p-8 sm:p-12 text-center max-w-2xl mx-auto border-2 border-amber-500/50 space-y-5">
-                <div class="text-6xl animate-bounce">🔐</div>
+            <!-- LOCKED STATE CARD -->
+            <div id="redeemLockedCard" class="instrument-panel rounded-2xl p-6 sm:p-12 text-center max-w-2xl mx-auto border-2 border-amber-500/50 space-y-5">
+                <div class="text-5xl sm:text-6xl animate-bounce">🔐</div>
                 <div class="space-y-2">
                     <span class="px-3 py-1 text-[11px] mono-num font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded">
                         ACCESS DENIED // VOTE REQUIRED
                     </span>
-                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+                    <h2 class="text-xl sm:text-3xl font-extrabold text-white">
                         Redemption Portal Locked
                     </h2>
                     <p class="text-xs sm:text-sm text-gray-300 max-w-lg mx-auto">
-                        Please participate in our Team Member Poll to unlock key verification and media downloads.
+                        Please participate in the Team Member Poll to unlock key verification and media downloads.
                     </p>
                 </div>
                 <div class="pt-2">
                     <button type="button" onclick="jumpToVoteSectionAndHighlight()" class="btn-action px-6 py-3 rounded-xl text-xs uppercase tracking-wider cursor-pointer shadow-lg shadow-emerald-500/20">
-                        🗳️ Cast Your Vote to Unlock Vault &rarr;
+                        🗳️ Cast Vote to Unlock &rarr;
                     </button>
                 </div>
             </div>
 
-            <!-- UNLOCKED CONTENT -->
+            <!-- UNLOCKED REDEEM CONTENT -->
             <div id="redeemUnlockedContent" class="hidden space-y-6">
-                <div class="instrument-panel rounded-2xl p-6 sm:p-8 max-w-2xl mx-auto border border-[#2f384d]">
-                    <span class="px-2.5 py-0.5 text-[11px] mono-num font-bold uppercase bg-sky-500/15 text-sky-300 border border-sky-500/30 rounded">
-                        REDEEM CODE PORTAL // VERIFIED CLEARANCE
-                    </span>
+                <div class="instrument-panel rounded-2xl p-5 sm:p-8 max-w-2xl mx-auto border border-[#2f384d]">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="px-2.5 py-0.5 text-[11px] mono-num font-bold uppercase bg-sky-500/15 text-sky-300 border border-sky-500/30 rounded">
+                            REDEEM CODE PORTAL // VERIFIED CLEARANCE
+                        </span>
+                        <button type="button" onclick="switchPageSection('lottery')" class="text-xs text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer">
+                            🎰 Need a Key? Roll RNG &rarr;
+                        </button>
+                    </div>
+
                     <h2 class="text-xl sm:text-2xl font-extrabold text-white mt-2">
-                        Claim & Download/Redirect to Your Reward
+                        Claim & Download Reward
                     </h2>
                     <p class="text-xs text-gray-400 mt-1">
-                        Type or paste your 10-digit RNG key below to unlock your reward directly in your browser.
+                        Type or paste your 10-digit RNG key below to unlock and preview your reward.
                     </p>
 
+                    <!-- Active Session Key Reminder Chip -->
+                    <div id="sessionKeyReminderBar" class="hidden mt-3 px-3 py-2 rounded-lg bg-[#121824] border border-emerald-500/30 flex items-center justify-between gap-2 text-xs">
+                        <span class="text-gray-300">Your Rolled Session Key: <strong id="reminderKeySpan" class="mono-num text-emerald-400 tracking-wider select-all"></strong></span>
+                        <button type="button" onclick="copyWonCode()" class="px-2.5 py-1 rounded bg-[#232b3d] hover:bg-[#2f3952] text-[11px] font-semibold text-white cursor-pointer">
+                            📋 Copy
+                        </button>
+                    </div>
+
                     <div class="flex flex-col sm:flex-row gap-2 mt-4">
-                        <input type="text" id="codeInputBox" maxlength="10" autocomplete="off" spellcheck="false" placeholder="ENTER 10-DIGIT KEY (E.G. 8K4F9L2M7W)" class="flex-1 recessed-well px-3.5 py-2.5 rounded-lg text-sm mono-num text-white border border-[#2e384d] focus:outline-none focus:border-emerald-400 uppercase tracking-widest" />
+                        <input type="text" id="codeInputBox" maxlength="10" autocomplete="off" spellcheck="false" placeholder="ENTER 10-DIGIT KEY" onkeydown="if(event.key==='Enter') redeemEnteredCode()" class="flex-1 recessed-well px-3.5 py-2.5 rounded-lg text-sm mono-num text-white border border-[#2e384d] focus:outline-none focus:border-emerald-400 uppercase tracking-widest" />
                         <button type="button" onclick="redeemEnteredCode()" class="btn-action px-5 py-2.5 rounded-lg text-xs uppercase tracking-wider cursor-pointer shrink-0">
-                            🔓 Unlock Reward
+                            🔓 Unlock
                         </button>
                     </div>
                     <p id="codeErrorText" class="text-xs text-red-400 mt-2 hidden"></p>
@@ -533,7 +721,7 @@
                                 </h3>
                             </div>
                             <button type="button" id="directDownloadBtn" onclick="triggerDirectBrowserDownload()" class="btn-action px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 cursor-pointer">
-                                ↗ Redirect to Media
+                                ⬇ Download
                             </button>
                         </div>
 
@@ -543,13 +731,42 @@
                         <div id="unlockedMediaStage" class="w-full rounded-lg overflow-hidden bg-black flex items-center justify-center min-h-[160px] max-h-[380px]"></div>
                     </div>
                 </div>
+            </div>
 
-                <!-- KEY VERIFICATION INSTRUCTIONS & FAQ -->
-                <div class="instrument-panel rounded-2xl p-5 max-w-2xl mx-auto border border-[#232938] text-xs space-y-2 text-gray-400">
-                    <span class="font-bold text-white block mb-1">ℹ️ Key Verification System Notes</span>
-                    <p>• Keys are 10-character alphanumeric strings generated exclusively via the RNG Telemetry Loot Box.</p>
-                    <p>• Videos automatically initiate direct file downloads; audio and photos open high-resolution Google Drive previews.</p>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 4: PERMANENT LIVE LEADERBOARD                               -->
+        <!-- =================================================================== -->
+        <section id="viewLeaderboard" style="display: none;" class="space-y-6 pb-12">
+            
+            <div class="instrument-panel rounded-2xl p-5 sm:p-8 max-w-3xl mx-auto border border-[#2f384d] space-y-6">
+                
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#232938] pb-4">
+                    <div>
+                        <span class="px-2.5 py-0.5 text-[11px] mono-num font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded">
+                            PERMANENT TELEMETRY LEADERBOARD
+                        </span>
+                        <h2 class="text-xl sm:text-3xl font-extrabold text-white mt-2">
+                            Official Team Poll Standings
+                        </h2>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] uppercase text-gray-400 block mono-num">TOTAL OFFICIAL VOTES</span>
+                        <span id="leaderboardTotalVotes" class="text-2xl font-black text-emerald-400 mono-num">0</span>
+                    </div>
                 </div>
+
+                <!-- RANKED LEADERBOARD CONTAINER -->
+                <div id="leaderboardList" class="space-y-3.5"></div>
+
+                <div class="pt-2 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400 border-t border-[#1f2637]">
+                    <span>🔒 Verified by 4-digit ID tokens</span>
+                    <button type="button" onclick="jumpToVoteSectionAndHighlight()" class="text-emerald-400 hover:text-emerald-300 font-bold cursor-pointer">
+                        🗳️ Cast or Switch Voter ID &rarr;
+                    </button>
+                </div>
+
             </div>
 
         </section>
@@ -561,170 +778,25 @@
     </footer>
 
     <script>
-        const creditsAudio = document.getElementById('creditsAudio');
-        const audioUnlockOverlay = document.getElementById('audioUnlockOverlay');
-        const songClock = document.getElementById('songClock');
-        const creditsScrollViewport = document.getElementById('creditsScrollViewport');
-
-        let isAutoRolling = true;
-        let autoRollFrame = null;
-        let currentWonCode = "";
-        let hasRolledThisVisit = false;
-        let activeUnlockedItem = null;
-        let bgAudioWasPlayingBeforeReward = false;
-        
-        // LOCK SYSTEM STATE
-        let hasVoted = false;
-
         // =====================================================================
-        // 1. AUDIO ENGINE
+        // 1. PROTECTED CORE VOTERS & DYNAMIC GUEST REGISTRY
         // =====================================================================
-        function tryStartAudio() {
-            creditsAudio.volume = 0.9;
-            const playPromise = creditsAudio.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    audioUnlockOverlay.style.display = 'none';
-                    startAutoRoll();
-                }).catch(() => {
-                    audioUnlockOverlay.style.display = 'flex';
-                });
-            }
-        }
+        const CORE_PROTECTED_VOTERS = {
+            "1117": "Mitadru Karmakar",
+            "1134": "Syed Meraj Ahmed",
+            "1183": "Ritam Chatterjee",
+            "1075": "Sourajita Choudhury",
+            "1174": "Debankita Das"
+        };
 
-        window.addEventListener('DOMContentLoaded', () => {
-            creditsAudio.currentTime = 0;
-            tryStartAudio();
+        const DEFAULT_VOTE_COUNTS = {
+            "Mitadru Karmakar": 0,
+            "Syed Meraj Ahmed": 0,
+            "Ritam Chatterjee": 0,
+            "Sourajita Choudhury": 0,
+            "Debankita Das": 0
+        };
 
-            if (window.location.hash.startsWith('#redeem')) {
-                switchPageSection('redeem');
-            }
-        });
-
-        function unlockAudioAndStart() {
-            audioUnlockOverlay.style.display = 'none';
-            creditsAudio.volume = 0.9;
-            creditsAudio.play().catch(() => {});
-            startAutoRoll();
-        }
-
-        document.addEventListener('click', () => {
-            if (creditsAudio.paused && !document.hidden && audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
-                creditsAudio.play().catch(() => {});
-            }
-        }, { once: true });
-
-        creditsAudio.addEventListener('timeupdate', () => {
-            const sec = Math.floor(creditsAudio.currentTime || 0);
-            const m = String(Math.floor(sec / 60)).padStart(2, '0');
-            const s = String(sec % 60).padStart(2, '0');
-            songClock.innerText = `${m}:${s}`;
-        });
-
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                creditsAudio.pause();
-            } else if (audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
-                creditsAudio.play().catch(() => {});
-            }
-        });
-        window.addEventListener('blur', () => creditsAudio.pause());
-        window.addEventListener('focus', () => {
-            if (audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
-                creditsAudio.play().catch(() => {});
-            }
-        });
-        window.addEventListener('pagehide', () => creditsAudio.pause());
-
-        function toggleAudioMute() {
-            creditsAudio.muted = !creditsAudio.muted;
-            document.getElementById('muteToggleBtn').innerText = creditsAudio.muted ? 'Unmute' : 'Mute';
-        }
-
-        function exitCreditsToCockpit() {
-            creditsAudio.pause();
-            window.close();
-            window.location.href = 'index.html';
-        }
-
-        // =====================================================================
-        // 2. TAB NAVIGATION & ROLL CONTROLS WITH GATED ACCESS
-        // =====================================================================
-        function switchPageSection(section) {
-            document.getElementById('viewCreditsAndVote').style.display = (section === 'credits') ? 'block' : 'none';
-            document.getElementById('viewRngLottery').style.display     = (section === 'lottery') ? 'block' : 'none';
-            document.getElementById('viewRedeemPortal').style.display   = (section === 'redeem')  ? 'block' : 'none';
-
-            const navs = [
-                { id: 'credits', el: document.getElementById('navCredits') },
-                { id: 'lottery', el: document.getElementById('navLottery') },
-                { id: 'redeem',  el: document.getElementById('navRedeem') }
-            ];
-            navs.forEach(n => {
-                n.el.className = (n.id === section)
-                    ? 'px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-500 text-[#042419] transition cursor-pointer'
-                    : 'px-3 py-1 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer';
-            });
-
-            if (section !== 'credits') {
-                stopAutoRoll();
-            }
-            if (creditsAudio.paused && audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
-                creditsAudio.play().catch(() => {});
-            }
-        }
-
-        function startAutoRoll() {
-            isAutoRolling = true;
-            const btn = document.getElementById('btnAutoScroll');
-            if (btn) btn.innerText = '⏸ Pause Auto-Roll';
-            if (autoRollFrame) cancelAnimationFrame(autoRollFrame);
-
-            function step() {
-                if (!isAutoRolling) return;
-                creditsScrollViewport.scrollTop += 0.75;
-                if (creditsScrollViewport.scrollTop + creditsScrollViewport.clientHeight < creditsScrollViewport.scrollHeight - 4) {
-                    autoRollFrame = requestAnimationFrame(step);
-                } else {
-                    isAutoRolling = false;
-                    if (btn) btn.innerText = '▶ Resume Auto-Roll';
-                    document.getElementById('thankYouCardInner')?.classList.add('finale-unlocked');
-                }
-            }
-            autoRollFrame = requestAnimationFrame(step);
-        }
-
-        function stopAutoRoll() {
-            isAutoRolling = false;
-            const btn = document.getElementById('btnAutoScroll');
-            if (btn) btn.innerText = '▶ Resume Auto-Roll';
-            if (autoRollFrame) cancelAnimationFrame(autoRollFrame);
-        }
-
-        function toggleAutoScroll() {
-            if (isAutoRolling) stopAutoRoll();
-            else startAutoRoll();
-        }
-
-        function jumpToVote() {
-            stopAutoRoll();
-            document.getElementById('thankYouCardInner')?.classList.add('finale-unlocked');
-            document.getElementById('thankYouFinaleBox')?.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function jumpToVoteSectionAndHighlight() {
-            switchPageSection('credits');
-            setTimeout(() => {
-                document.getElementById('voteSection')?.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
-        }
-
-        creditsScrollViewport.addEventListener('wheel', () => stopAutoRoll(), { passive: true });
-        creditsScrollViewport.addEventListener('touchmove', () => stopAutoRoll(), { passive: true });
-
-        // =====================================================================
-        // 3. UNBIASED FAVORITE MEMBER POLL & UNLOCK TRIGGER
-        // =====================================================================
         const CREW_MEMBERS = [
             {
                 name: "Mitadru Karmakar",
@@ -753,6 +825,479 @@
             }
         ];
 
+        const ORDINAL_LABELS = ["1st", "2nd", "3rd", "4th", "5th"];
+
+        const creditsAudio = document.getElementById('creditsAudio');
+        const audioUnlockOverlay = document.getElementById('audioUnlockOverlay');
+        const songClock = document.getElementById('songClock');
+        const songClockMobile = document.getElementById('songClockMobile');
+        const creditsScrollViewport = document.getElementById('creditsScrollViewport');
+
+        let isAutoRolling = true;
+        let autoRollFrame = null;
+        let lastScrollTime = 0;
+        let scrollSubPixelAccumulator = 0;
+        let rollStartTimestamp = 0;
+
+        let currentWonCode = "";
+        let hasRolledThisVisit = false;
+        let activeUnlockedItem = null;
+        let bgAudioWasPlayingBeforeReward = false;
+        let hasVoted = false;
+        let activeSessionVoterId = null;
+        let crewShuffledList = [];
+
+        // Purge any legacy history keys so old vote loops never replay
+        try {
+            localStorage.removeItem('roadSense_voteHistoryOrder');
+            localStorage.removeItem('roadSense_newsLog');
+        } catch (e) {}
+
+        // =====================================================================
+        // 2. SYNTHESIZED WEB AUDIO UI SOUND EFFECTS
+        // =====================================================================
+        let uiAudioCtx = null;
+        function playUiSound(type) {
+            try {
+                if (!uiAudioCtx) uiAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (uiAudioCtx.state === 'suspended') uiAudioCtx.resume();
+                const now = uiAudioCtx.currentTime;
+
+                if (type === 'login') {
+                    [523.25, 659.25, 783.99].forEach((freq, idx) => {
+                        const osc = uiAudioCtx.createOscillator();
+                        const gain = uiAudioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+                        gain.gain.setValueAtTime(0.14, now + idx * 0.06);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(uiAudioCtx.destination);
+                        osc.start(now + idx * 0.06);
+                        osc.stop(now + idx * 0.06 + 0.23);
+                    });
+                } else if (type === 'vote') {
+                    [440, 554.37, 659.25, 880].forEach((freq, idx) => {
+                        const osc = uiAudioCtx.createOscillator();
+                        const gain = uiAudioCtx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.055);
+                        gain.gain.setValueAtTime(0.18, now + idx * 0.055);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.055 + 0.32);
+                        osc.connect(gain);
+                        gain.connect(uiAudioCtx.destination);
+                        osc.start(now + idx * 0.055);
+                        osc.stop(now + idx * 0.055 + 0.34);
+                    });
+                } else if (type === 'switch') {
+                    const osc = uiAudioCtx.createOscillator();
+                    const gain = uiAudioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(480, now);
+                    osc.frequency.exponentialRampToValueAtTime(320, now + 0.14);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    osc.connect(gain);
+                    gain.connect(uiAudioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.16);
+                } else if (type === 'error') {
+                    const osc = uiAudioCtx.createOscillator();
+                    const gain = uiAudioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, now);
+                    osc.frequency.setValueAtTime(130, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                    osc.connect(gain);
+                    gain.connect(uiAudioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.23);
+                }
+            } catch (e) {}
+        }
+
+        // =====================================================================
+        // 3. MULTI-TRACK LOOPING BACKGROUND AUDIO ENGINE
+        // =====================================================================
+        const TRACK_CANDIDATES = {
+            default: ["music.mpeg", "music.mp3", "./music.mpeg", "/media/music.mpeg", "/media/music.mp3"],
+            mitadru: ["Mitadru.mpeg", "Mitadru.mp3", "mitadru.mpeg", "mitadru.mp3", "/media/Mitadru.mpeg", "/media/Mitadru.mp3"],
+            ritam:   ["Ritam.mpeg", "Ritam.mp3", "ritam.mpeg", "ritam.mp3", "/media/Ritam.mpeg", "/media/Ritam.mp3"]
+        };
+
+        const TRACK_LABELS = {
+            default: "OST: DEFAULT",
+            mitadru: "OST: ARCHITECT (1117)",
+            ritam:   "OST: DATASET LEAD (1183)"
+        };
+
+        let currentTrackProfile = null;
+        let currentCandidateIndex = 0;
+
+        function setEqAnimationState(isPlaying) {
+            document.querySelectorAll('.eq-bar').forEach(el => {
+                if (isPlaying && !creditsAudio.muted) {
+                    el.classList.remove('eq-paused');
+                } else {
+                    el.classList.add('eq-paused');
+                }
+            });
+        }
+
+        function loadAndPlayTrackProfile(profileKey, forceRestart = false) {
+            const targetProfile = TRACK_CANDIDATES[profileKey] ? profileKey : 'default';
+            if (currentTrackProfile === targetProfile && !forceRestart && creditsAudio.src) {
+                if (creditsAudio.paused && !document.hidden && !bgAudioWasPlayingBeforeReward && audioUnlockOverlay.style.display === 'none') {
+                    creditsAudio.play().catch(() => {});
+                }
+                return;
+            }
+
+            currentTrackProfile = targetProfile;
+            currentCandidateIndex = 0;
+            const badge = document.getElementById('activeTrackBadge');
+            if (badge) badge.innerText = TRACK_LABELS[targetProfile] || "OST: DEFAULT";
+
+            tryLoadCandidateSource();
+        }
+
+        function tryLoadCandidateSource() {
+            const list = TRACK_CANDIDATES[currentTrackProfile] || TRACK_CANDIDATES.default;
+            if (currentCandidateIndex >= list.length) {
+                if (currentTrackProfile !== 'default') {
+                    currentTrackProfile = 'default';
+                    currentCandidateIndex = 0;
+                    const badge = document.getElementById('activeTrackBadge');
+                    if (badge) badge.innerText = TRACK_LABELS.default;
+                    tryLoadCandidateSource();
+                }
+                return;
+            }
+
+            const candidateUrl = list[currentCandidateIndex];
+            creditsAudio.src = candidateUrl;
+            creditsAudio.loop = true;
+            creditsAudio.volume = 0.9;
+            creditsAudio.load();
+
+            if (!document.hidden && !bgAudioWasPlayingBeforeReward) {
+                const playPromise = creditsAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        audioUnlockOverlay.style.display = 'none';
+                        setEqAnimationState(true);
+                    }).catch((err) => {
+                        if (err && err.name === 'NotAllowedError') {
+                            audioUnlockOverlay.style.display = 'flex';
+                        }
+                    });
+                }
+            }
+        }
+
+        creditsAudio.addEventListener('error', () => {
+            currentCandidateIndex++;
+            tryLoadCandidateSource();
+        });
+
+        creditsAudio.addEventListener('play', () => setEqAnimationState(true));
+        creditsAudio.addEventListener('pause', () => setEqAnimationState(false));
+
+        creditsAudio.addEventListener('timeupdate', () => {
+            const sec = Math.floor(creditsAudio.currentTime || 0);
+            const m = String(Math.floor(sec / 60)).padStart(2, '0');
+            const s = String(sec % 60).padStart(2, '0');
+            const timeStr = `${m}:${s}`;
+            if (songClock) songClock.innerText = timeStr;
+            if (songClockMobile) songClockMobile.innerText = timeStr;
+        });
+
+        function unlockAudioAndStart() {
+            audioUnlockOverlay.style.display = 'none';
+            creditsAudio.volume = 0.9;
+            creditsAudio.play().then(() => setEqAnimationState(true)).catch(() => {});
+            startAutoRoll(true);
+        }
+
+        document.addEventListener('click', () => {
+            if (creditsAudio.paused && !document.hidden && audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
+                creditsAudio.play().catch(() => {});
+            }
+        }, { once: true });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                creditsAudio.pause();
+            } else if (audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
+                creditsAudio.play().catch(() => {});
+            }
+        });
+        window.addEventListener('blur', () => creditsAudio.pause());
+        window.addEventListener('focus', () => {
+            if (audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
+                creditsAudio.play().catch(() => {});
+            }
+        });
+        window.addEventListener('pagehide', () => creditsAudio.pause());
+
+        function toggleAudioMute() {
+            creditsAudio.muted = !creditsAudio.muted;
+            document.querySelectorAll('.mute-btn-label').forEach(btn => {
+                btn.innerText = creditsAudio.muted ? 'Unmute' : 'Mute';
+            });
+            setEqAnimationState(!creditsAudio.paused);
+        }
+
+        function exitCreditsToCockpit() {
+            creditsAudio.pause();
+            window.close();
+            window.location.href = 'index.html';
+        }
+
+        // =====================================================================
+        // 4. STORAGE, VOTER DISPLAY NAME RESOLUTION & VOTE LEDGER
+        // =====================================================================
+        function getCustomGuestVoters() {
+            try {
+                const raw = localStorage.getItem('roadSense_customVoters');
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function saveCustomGuestVoters(map) {
+            localStorage.setItem('roadSense_customVoters', JSON.stringify(map));
+        }
+
+        function getAllAuthorizedVoters() {
+            return { ...getCustomGuestVoters(), ...CORE_PROTECTED_VOTERS };
+        }
+
+        /**
+         * Resolves Voter Display Name:
+         * - Core Member -> Full Name (e.g., "Mitadru Karmakar")
+         * - Guest with Name/Tag -> Tag (e.g., "Reviewer 1")
+         * - Guest without Name/Tag -> "ID 4829"
+         */
+        function getVoterDisplayName(id) {
+            if (!id) return "Unknown";
+            if (id === "0000") return "Admin (0000)";
+            if (CORE_PROTECTED_VOTERS[id]) return CORE_PROTECTED_VOTERS[id];
+
+            const customVoters = getCustomGuestVoters();
+            const rawTag = (customVoters[id] || "").trim();
+            if (rawTag && !/^Anonymous Guest/i.test(rawTag)) {
+                return rawTag;
+            }
+            return `ID ${id}`;
+        }
+
+        function getOfficialVoteCounts() {
+            const stored = localStorage.getItem('roadSense_voteCounts');
+            if (!stored) {
+                localStorage.setItem('roadSense_voteCounts', JSON.stringify(DEFAULT_VOTE_COUNTS));
+                return { ...DEFAULT_VOTE_COUNTS };
+            }
+            try {
+                const parsed = JSON.parse(stored);
+                if (parsed["Mitadru Karmakar"] === 18 && parsed["Syed Meraj Ahmed"] === 15) {
+                    localStorage.setItem('roadSense_voteCounts', JSON.stringify(DEFAULT_VOTE_COUNTS));
+                    return { ...DEFAULT_VOTE_COUNTS };
+                }
+                return parsed;
+            } catch (e) {
+                return { ...DEFAULT_VOTE_COUNTS };
+            }
+        }
+
+        function saveOfficialVoteCounts(counts) {
+            localStorage.setItem('roadSense_voteCounts', JSON.stringify(counts));
+        }
+
+        function getUsedVoterIDs() {
+            try {
+                const stored = localStorage.getItem('roadSense_usedVoterIDs');
+                return stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveUsedVoterIDs(ids) {
+            localStorage.setItem('roadSense_usedVoterIDs', JSON.stringify(ids));
+        }
+
+        function getVoteLedger() {
+            try {
+                const raw = localStorage.getItem('roadSense_voteLedger');
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function saveVoteLedger(ledger) {
+            localStorage.setItem('roadSense_voteLedger', JSON.stringify(ledger));
+        }
+
+        function getTestVoteCounts() {
+            try {
+                const stored = localStorage.getItem('roadSense_testVotes');
+                return stored ? JSON.parse(stored) : {};
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function saveTestVoteCounts(tv) {
+            localStorage.setItem('roadSense_testVotes', JSON.stringify(tv));
+        }
+
+        // =====================================================================
+        // 5. DETERMINISTIC RAF SIDE-SCROLLING LIVE TICKER ENGINE
+        //    - Newly cast vote glides from right side to left side ONCE ONLY
+        //      (queued one by one if multiple people vote consecutively)
+        //    - Then switches permanently to LEADERBOARD rankings (1st, 2nd, 3rd...)
+        //      gliding from right side to left side UNLIMITEDLY
+        //    - Hides 0-vote members; hides entire bar if all members == 0
+        // =====================================================================
+        let singlePassVoteQueue = []; // In-memory queue of { voterId, targetName } — each plays 1 time only!
+        let tickerRafId = null;
+        let tickerLastTime = 0;
+        let tickerCurrentX = 0;
+        let tickerTargetEndX = 0;
+        let tickerIsPausedOnHover = false;
+        let tickerCurrentMode = null; // 'vote' | 'ranking' | null
+
+        function buildRankingTickerHtml() {
+            const counts = getOfficialVoteCounts();
+            const nonZeroRanked = [...CREW_MEMBERS]
+                .filter(m => (counts[m.name] || 0) > 0)
+                .sort((a, b) => (counts[b.name] || 0) - (counts[a.name] || 0));
+
+            if (nonZeroRanked.length === 0) return "";
+
+            const segments = nonZeroRanked.map((m, idx) => {
+                const c = counts[m.name];
+                const ord = ORDINAL_LABELS[idx] || `${idx + 1}th`;
+                const colorClass = idx === 0
+                    ? 'text-amber-300 font-extrabold'
+                    : (idx === 1 ? 'text-sky-300 font-bold' : 'text-emerald-300 font-semibold');
+                return `<span class="${colorClass}">${ord}: ${m.name}</span> <span class="text-gray-300">(${c} ${c === 1 ? 'Vote' : 'Votes'})</span>`;
+            });
+
+            return segments.join('<span class="mx-5 text-gray-600">&bull;</span>');
+        }
+
+        function startNextTickerPass() {
+            const tickerBar = document.getElementById('liveNewsTickerBar');
+            const viewportEl = document.getElementById('liveFeedViewport');
+            const badgeEl = document.getElementById('liveFeedBadge');
+            const badgeTextEl = document.getElementById('liveFeedBadgeText');
+            const runnerEl = document.getElementById('liveFeedRunner');
+            const counterEl = document.getElementById('liveFeedStepCounter');
+
+            if (!tickerBar || !viewportEl || !runnerEl) return;
+
+            if (tickerRafId) {
+                cancelAnimationFrame(tickerRafId);
+                tickerRafId = null;
+            }
+
+            const rankingHtml = buildRankingTickerHtml();
+
+            // If all votes are 0 and no vote announcement is queued, hide bar completely
+            if (!rankingHtml && singlePassVoteQueue.length === 0) {
+                tickerBar.classList.add('hidden');
+                tickerCurrentMode = null;
+                runnerEl.innerHTML = "";
+                return;
+            }
+
+            tickerBar.classList.remove('hidden');
+
+            // Priority 1: If a new vote was just cast, pop it from the queue and play it ONCE
+            if (singlePassVoteQueue.length > 0) {
+                const voteEvent = singlePassVoteQueue.shift();
+                const voterDisplay = getVoterDisplayName(voteEvent.voterId);
+
+                tickerCurrentMode = 'vote';
+                badgeEl.className = "px-2.5 py-0.5 text-[10px] mono-num font-extrabold uppercase bg-emerald-400 text-[#042419] rounded-md shrink-0 flex items-center gap-1.5 shadow-sm transition-colors duration-300";
+                badgeTextEl.innerText = "🗳️ VOTE CAST";
+                if (counterEl) counterEl.innerText = "ONCE";
+
+                runnerEl.innerHTML = `<span class="text-emerald-300 font-bold">${voterDisplay}</span> <span class="text-gray-400">voted for</span> <span class="text-white font-bold underline decoration-emerald-500/60 underline-offset-4">${voteEvent.targetName}</span>`;
+            } else {
+                // Priority 2: Unlimited Leaderboard Standings loop
+                tickerCurrentMode = 'ranking';
+                badgeEl.className = "px-2.5 py-0.5 text-[10px] mono-num font-extrabold uppercase bg-amber-400 text-[#1a1202] rounded-md shrink-0 flex items-center gap-1.5 shadow-sm transition-colors duration-300";
+                badgeTextEl.innerText = "🏆 LEADERBOARD";
+                if (counterEl) counterEl.innerText = "LIVE";
+
+                runnerEl.innerHTML = rankingHtml;
+            }
+
+            // Wait one frame for layout measurement, then glide smoothly from right edge to left edge
+            requestAnimationFrame(() => {
+                const viewportWidth = viewportEl.clientWidth || 650;
+                const contentWidth = runnerEl.scrollWidth || 350;
+
+                tickerCurrentX = viewportWidth;
+                tickerTargetEndX = -contentWidth - 20;
+                tickerLastTime = performance.now();
+                runnerEl.style.transform = `translate3d(${tickerCurrentX}px, 0, 0)`;
+
+                const speedPxPerSec = 115; // Smooth reading speed across PC and mobile
+
+                function stepTicker(now) {
+                    const dtSec = Math.min(0.05, (now - tickerLastTime) / 1000);
+                    tickerLastTime = now;
+
+                    if (!tickerIsPausedOnHover) {
+                        tickerCurrentX -= speedPxPerSec * dtSec;
+                        runnerEl.style.transform = `translate3d(${tickerCurrentX.toFixed(1)}px, 0, 0)`;
+                    }
+
+                    if (tickerCurrentX > tickerTargetEndX) {
+                        tickerRafId = requestAnimationFrame(stepTicker);
+                    } else {
+                        // Pass finished! Immediately launch next pass (either next queued vote or unlimited Leaderboard)
+                        tickerRafId = null;
+                        startNextTickerPass();
+                    }
+                }
+
+                tickerRafId = requestAnimationFrame(stepTicker);
+            });
+        }
+
+        // Pause side-scroll while hovering over the ticker
+        const liveFeedViewportEl = document.getElementById('liveFeedViewport');
+        liveFeedViewportEl?.addEventListener('mouseenter', () => { tickerIsPausedOnHover = true; });
+        liveFeedViewportEl?.addEventListener('mouseleave', () => { tickerIsPausedOnHover = false; });
+
+        function updateLiveNewsTicker(newlyCastVoteObj = null) {
+            if (newlyCastVoteObj) {
+                // Queue this new vote to glide across 1 time only
+                singlePassVoteQueue.push({
+                    voterId: newlyCastVoteObj.voterId,
+                    targetName: newlyCastVoteObj.targetName
+                });
+
+                // If another vote is currently mid-glide across the screen, let it finish its 1 pass first so they show one by one
+                if (tickerCurrentMode === 'vote' && tickerRafId) {
+                    return;
+                }
+            }
+
+            startNextTickerPass();
+        }
+
+        // =====================================================================
+        // 6. INITIALIZATION & SUB-PIXEL SMOOTH AUTO-SCROLL ENGINE
+        // =====================================================================
         function shuffleArray(arr) {
             const copy = [...arr];
             for (let i = copy.length - 1; i > 0; i--) {
@@ -762,32 +1307,454 @@
             return copy;
         }
 
-        function renderPollCards() {
-            const shuffled = shuffleArray(CREW_MEMBERS);
-            document.getElementById('memberPollGrid').innerHTML = shuffled.map(m => `
-                <div class="elevated-card p-3.5 rounded-xl flex flex-col justify-between border border-[#2a3347] hover:border-emerald-500/60 transition">
-                    <div>
-                        <span class="text-[10px] mono-num uppercase text-sky-400 font-semibold block mb-1">${m.role}</span>
-                        <h4 class="text-sm font-bold text-white mb-1.5">${m.name}</h4>
-                        <p class="text-[11px] text-gray-400 leading-relaxed mb-3">${m.desc}</p>
-                    </div>
-                    <button type="button" onclick="submitMemberVote('${m.name}')" class="w-full py-1.5 rounded-lg bg-[#232b3e] hover:bg-emerald-500 hover:text-[#042419] text-xs font-bold text-white transition cursor-pointer">
-                        👍 Vote
-                    </button>
-                </div>
-            `).join('');
-        }
-        renderPollCards();
+        window.addEventListener('DOMContentLoaded', () => {
+            crewShuffledList = shuffleArray(CREW_MEMBERS);
 
-        function submitMemberVote(name) {
+            const savedId = localStorage.getItem('roadSenseVoterID');
+            const allVoters = getAllAuthorizedVoters();
+
+            if (savedId && allVoters[savedId]) {
+                activateVoterSession(savedId, true);
+            } else {
+                loadAndPlayTrackProfile('default');
+                renderPollCards();
+            }
+
+            renderLeaderboard();
+            updateLiveNewsTicker();
+
+            // Always start at top and begin auto-scrolling down on opening
+            creditsScrollViewport.scrollTop = 0;
+            startAutoRoll(true);
+
+            if (window.location.hash.startsWith('#redeem')) {
+                history.replaceState(null, "", window.location.pathname);
+                switchPageSection('redeem');
+            } else if (window.location.hash.startsWith('#leaderboard')) {
+                history.replaceState(null, "", window.location.pathname);
+                switchPageSection('leaderboard');
+            }
+        });
+
+        // Also reinforce auto-roll after Tailwind CDN finishes full style injection on window.load
+        window.addEventListener('load', () => {
+            const creditsSec = document.getElementById('viewCreditsAndVote');
+            if (creditsSec && creditsSec.style.display !== 'none' && isAutoRolling) {
+                startAutoRoll(false);
+            }
+        });
+
+        function switchPageSection(section) {
+            const sections = {
+                credits: document.getElementById('viewCreditsAndVote'),
+                lottery: document.getElementById('viewRngLottery'),
+                redeem: document.getElementById('viewRedeemPortal'),
+                leaderboard: document.getElementById('viewLeaderboard')
+            };
+
+            Object.entries(sections).forEach(([key, el]) => {
+                if (!el) return;
+                if (key === section) {
+                    el.style.display = 'block';
+                    el.classList.remove('section-animate');
+                    void el.offsetWidth;
+                    el.classList.add('section-animate');
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+
+            const navs = [
+                { id: 'credits', el: document.getElementById('navCredits') },
+                { id: 'lottery', el: document.getElementById('navLottery') },
+                { id: 'redeem',  el: document.getElementById('navRedeem') },
+                { id: 'leaderboard', el: document.getElementById('navLeaderboard') }
+            ];
+            navs.forEach(n => {
+                n.el.className = (n.id === section)
+                    ? 'px-3 py-1.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-semibold bg-emerald-500 text-[#042419] transition-all duration-200 cursor-pointer text-center whitespace-nowrap shadow-sm'
+                    : 'px-3 py-1.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-semibold text-gray-300 hover:text-white transition-all duration-200 cursor-pointer text-center whitespace-nowrap';
+            });
+
+            if (section !== 'credits') {
+                stopAutoRoll();
+                creditsScrollViewport.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            if (section === 'leaderboard') {
+                renderLeaderboard();
+            }
+            if (creditsAudio.paused && audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
+                creditsAudio.play().catch(() => {});
+            }
+        }
+
+        // Sub-pixel accurate auto-scroll with layout-readiness guard
+        function startAutoRoll(resetToTopIfAtBottom = false) {
+            isAutoRolling = true;
+            lastScrollTime = performance.now();
+            rollStartTimestamp = lastScrollTime;
+            scrollSubPixelAccumulator = 0;
+
+            const btn = document.getElementById('btnAutoScroll');
+            if (btn) btn.innerText = '⏸ Pause Roll';
+            if (autoRollFrame) cancelAnimationFrame(autoRollFrame);
+
+            const maxScrollable = creditsScrollViewport.scrollHeight - creditsScrollViewport.clientHeight;
+            if (resetToTopIfAtBottom && maxScrollable > 20 && creditsScrollViewport.scrollTop >= maxScrollable - 8) {
+                creditsScrollViewport.scrollTop = 0;
+            }
+
+            function step(now) {
+                if (!isAutoRolling) return;
+                const dt = Math.min(40, Math.max(0, now - lastScrollTime));
+                lastScrollTime = now;
+
+                const scrollableHeight = creditsScrollViewport.scrollHeight - creditsScrollViewport.clientHeight;
+
+                // Guard: While Tailwind CDN is still applying layout during first 2.5 seconds, wait without stopping!
+                if (scrollableHeight <= 10) {
+                    if (now - rollStartTimestamp < 2500) {
+                        autoRollFrame = requestAnimationFrame(step);
+                    }
+                    return;
+                }
+
+                // Accumulate sub-pixel movement (52 px/sec) and apply whole integer pixels so Edge/Chrome never rounds down to 0
+                scrollSubPixelAccumulator += (dt * 0.052);
+                if (scrollSubPixelAccumulator >= 1) {
+                    const wholePx = Math.floor(scrollSubPixelAccumulator);
+                    creditsScrollViewport.scrollTop += wholePx;
+                    scrollSubPixelAccumulator -= wholePx;
+                }
+
+                if (creditsScrollViewport.scrollTop < scrollableHeight - 3) {
+                    autoRollFrame = requestAnimationFrame(step);
+                } else {
+                    isAutoRolling = false;
+                    if (btn) btn.innerText = '▶ Resume Roll';
+                    document.getElementById('thankYouCardInner')?.classList.add('finale-unlocked');
+                }
+            }
+
+            autoRollFrame = requestAnimationFrame(step);
+        }
+
+        function stopAutoRoll() {
+            isAutoRolling = false;
+            const btn = document.getElementById('btnAutoScroll');
+            if (btn) btn.innerText = '▶ Resume Roll';
+            if (autoRollFrame) {
+                cancelAnimationFrame(autoRollFrame);
+                autoRollFrame = null;
+            }
+        }
+
+        function toggleAutoScroll() {
+            if (isAutoRolling) stopAutoRoll();
+            else startAutoRoll(true);
+        }
+
+        function jumpToVote() {
+            stopAutoRoll();
+            document.getElementById('thankYouCardInner')?.classList.add('finale-unlocked');
+            document.getElementById('voteSection')?.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function jumpToVoteSectionAndHighlight() {
+            switchPageSection('credits');
+            setTimeout(() => {
+                document.getElementById('voteSection')?.scrollIntoView({ behavior: 'smooth' });
+            }, 120);
+        }
+
+        // Only pause auto-roll on genuine user wheel or touch scroll
+        creditsScrollViewport.addEventListener('wheel', () => stopAutoRoll(), { passive: true });
+        creditsScrollViewport.addEventListener('touchmove', () => stopAutoRoll(), { passive: true });
+
+        // =====================================================================
+        // 7. VOTER ID LOGIN, ACCOUNT SWITCHING & CUSTOM THEME MUSIC
+        // =====================================================================
+        function handleVoterIdInputChange() {
+            document.getElementById('voterIdStatus').classList.add('hidden');
+        }
+
+        function syncTrackForVoterId(id) {
+            if (id === "1117") {
+                loadAndPlayTrackProfile('mitadru');
+            } else if (id === "1183") {
+                loadAndPlayTrackProfile('ritam');
+            } else {
+                loadAndPlayTrackProfile('default');
+            }
+        }
+
+        function validateVoterId() {
+            const input = document.getElementById('voterIdInput');
+            const statusDiv = document.getElementById('voterIdStatus');
+            const id = (input.value || "").trim().toUpperCase();
+
+            if (!id || id.length !== 4) {
+                playUiSound('error');
+                statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-red-950/80 border border-red-500/50 text-red-300 block";
+                statusDiv.innerText = "❌ Please enter a valid 4-digit Voter ID (XXXX).";
+                return false;
+            }
+
+            const allVoters = getAllAuthorizedVoters();
+            if (id !== "0000" && !(id in allVoters)) {
+                playUiSound('error');
+                statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-red-950/80 border border-red-500/50 text-red-300 block";
+                statusDiv.innerText = "❌ Unrecognized 4-digit Voter ID. Access denied.";
+                return false;
+            }
+
+            playUiSound('login');
+            activateVoterSession(id, false);
+            return true;
+        }
+
+        function activateVoterSession(id, isSilentRestore = false) {
+            activeSessionVoterId = id;
+            const statusDiv = document.getElementById('voterIdStatus');
+            const loginFormView = document.getElementById('voterLoginFormView');
+            const loggedInView = document.getElementById('voterLoggedInView');
+            const loggedInLabel = document.getElementById('loggedInUserLabel');
+
+            syncTrackForVoterId(id);
+
+            loginFormView.classList.add('hidden');
+            loggedInView.classList.remove('hidden');
+            loggedInView.classList.add('flex');
+
+            if (id === "0000") {
+                loggedInLabel.innerText = "Admin Root Session (ID: 0000)";
+                document.getElementById('adminPanelCard').classList.remove('hidden');
+                renderAdminVoterRegistry();
+                statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-sky-950/80 border border-sky-500/50 text-sky-300 block";
+                statusDiv.innerText = "🛠️ Admin Mode Active: Manage guest IDs below or cast unlimited [TEST] votes.";
+                renderPollCards();
+                return;
+            }
+
+            document.getElementById('adminPanelCard').classList.add('hidden');
+            const voterDisplay = getVoterDisplayName(id);
+            const isCore = Boolean(CORE_PROTECTED_VOTERS[id]);
+            loggedInLabel.innerText = voterDisplay;
+
+            const ledger = getVoteLedger();
+            const usedIDs = getUsedVoterIDs();
+            const alreadyVotedTarget = ledger[id] || (usedIDs.includes(id) ? localStorage.getItem('roadSenseVotedMember') : null);
+
+            if (usedIDs.includes(id) && alreadyVotedTarget) {
+                unlockVaultState(alreadyVotedTarget, isSilentRestore);
+                statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 block";
+                statusDiv.innerText = `✅ Welcome back, ${voterDisplay}! Your vote for ${alreadyVotedTarget} is recorded.`;
+            } else {
+                lockVaultStateForNewVoter();
+                statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 block";
+                statusDiv.innerText = isCore
+                    ? `✅ Logged in as ${voterDisplay}. Select a teammate below to cast your vote.`
+                    : `✅ Logged in as ${voterDisplay}. Select any project member below to cast your vote!`;
+            }
+
+            renderPollCards(alreadyVotedTarget);
+        }
+
+        function switchVoterAccount() {
+            playUiSound('switch');
+            activeSessionVoterId = null;
+            localStorage.removeItem('roadSenseVoterID');
+            localStorage.removeItem('roadSenseVotedMember');
+
+            syncTrackForVoterId(null);
+
+            const input = document.getElementById('voterIdInput');
+            if (input) input.value = "";
+
+            document.getElementById('voterLoginFormView').classList.remove('hidden');
+            document.getElementById('voterLoggedInView').classList.add('hidden');
+            document.getElementById('voterLoggedInView').classList.remove('flex');
+            document.getElementById('adminPanelCard').classList.add('hidden');
+            document.getElementById('voteConfirmedBanner').classList.add('hidden');
+
+            const statusDiv = document.getElementById('voterIdStatus');
+            statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-amber-950/80 border border-amber-500/50 text-amber-300 block";
+            statusDiv.innerText = "🔄 Session switched. Enter another 4-digit Voter ID (XXXX) to log in.";
+
+            lockVaultStateForNewVoter();
+            renderPollCards(null);
+            if (input) input.focus();
+        }
+
+        function lockVaultStateForNewVoter() {
+            hasVoted = false;
+            const statusDot = document.getElementById('vaultStatusDot');
+            if (statusDot) statusDot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0";
+
+            document.getElementById('navLotteryLabel').innerText = "🔒 2. RNG Lottery";
+            document.getElementById('navRedeemLabel').innerText = "🔒 3. Redeem Code";
+
+            document.getElementById('lotteryLockedCard').classList.remove('hidden');
+            document.getElementById('lotteryUnlockedContent').classList.add('hidden');
+            document.getElementById('redeemLockedCard').classList.remove('hidden');
+            document.getElementById('redeemUnlockedContent').classList.add('hidden');
+        }
+
+        // =====================================================================
+        // 8. POLL RENDERING & VOTE SUBMISSION
+        // =====================================================================
+        function renderPollCards(votedName = null) {
+            const allVoters = getAllAuthorizedVoters();
+            const currentId = activeSessionVoterId || (document.getElementById('voterIdInput')?.value || "").trim();
+            const currentOwner = allVoters[currentId] || null;
+            const ledger = getVoteLedger();
+            const effectiveVoted = votedName || (currentId && ledger[currentId]) || null;
+
+            document.getElementById('memberPollGrid').innerHTML = crewShuffledList.map(m => {
+                const isThisVoted = (effectiveVoted === m.name);
+                const isSelf = (currentOwner === m.name && currentId !== "0000");
+
+                let cardClass = isThisVoted
+                    ? "elevated-card p-3.5 rounded-xl flex flex-col justify-between border-2 border-emerald-400 bg-emerald-950/40 shadow-[0_0_20px_rgba(16,185,129,0.25)] transition duration-300"
+                    : "elevated-card p-3.5 rounded-xl flex flex-col justify-between border border-[#2a3347] hover:border-emerald-500/60 transition duration-300";
+
+                let btnClass = "";
+                let btnText = "";
+                let isDisabled = false;
+
+                if (isThisVoted) {
+                    btnClass = "w-full py-2 rounded-lg bg-emerald-400 text-[#042419] text-xs font-extrabold transition cursor-default shadow-md";
+                    btnText = "✓ Voted";
+                } else if (isSelf) {
+                    btnClass = "w-full py-2 rounded-lg bg-gray-800 text-gray-500 text-xs font-bold border border-gray-700 cursor-not-allowed";
+                    btnText = "🚫 Self-Vote Blocked";
+                    isDisabled = true;
+                } else {
+                    btnClass = "w-full py-2 rounded-lg bg-[#232b3e] hover:bg-emerald-500 hover:text-[#042419] text-xs font-bold text-white transition cursor-pointer";
+                    btnText = "👍 Vote";
+                }
+
+                const roleLabel = isThisVoted
+                    ? `<span class="text-[10px] mono-num uppercase text-emerald-400 font-extrabold block mb-1">YOUR VOTE ✓ &bull; ${m.role}</span>`
+                    : `<span class="text-[10px] mono-num uppercase text-sky-400 font-semibold block mb-1">${m.role}</span>`;
+
+                return `
+                    <div class="${cardClass}">
+                        <div>
+                            ${roleLabel}
+                            <h4 class="text-sm font-bold text-white mb-1.5">${m.name}</h4>
+                            <p class="text-[11px] text-gray-300 leading-relaxed mb-3.5">${m.desc}</p>
+                        </div>
+                        <button type="button" onclick="submitMemberVote('${m.name}')" ${isDisabled ? 'disabled' : ''} class="${btnClass}">
+                            ${btnText}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function submitMemberVote(targetName) {
+            const typedId = (document.getElementById('voterIdInput')?.value || "").trim().toUpperCase();
+            const id = activeSessionVoterId || typedId;
+            const statusDiv = document.getElementById('voterIdStatus');
+
+            if (!id || id.length !== 4) {
+                playUiSound('error');
+                statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-red-950/80 border border-red-500/50 text-red-300 block";
+                statusDiv.innerText = "❌ Please enter and login with your 4-digit Voter ID (XXXX) in Step 1 first.";
+                document.getElementById('voterIdInput')?.focus();
+                return;
+            }
+
+            if (!activeSessionVoterId) {
+                const allVotersCheck = getAllAuthorizedVoters();
+                if (id !== "0000" && !(id in allVotersCheck)) {
+                    playUiSound('error');
+                    statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-red-950/80 border border-red-500/50 text-red-300 block";
+                    statusDiv.innerText = "❌ Unrecognized 4-digit Voter ID. Access denied.";
+                    return;
+                }
+                activateVoterSession(id, true);
+            }
+
+            // ADMIN TEST ID 0000
+            if (id === "0000") {
+                playUiSound('vote');
+                const testVotes = getTestVoteCounts();
+                testVotes[targetName] = (testVotes[targetName] || 0) + 1;
+                saveTestVoteCounts(testVotes);
+
+                unlockVaultState(targetName, false);
+                statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-sky-950/80 border border-sky-500/50 text-sky-300 block";
+                statusDiv.innerText = `🧪 Admin Test Vote registered for ${targetName} (ID 0000).`;
+                renderLeaderboard();
+                return;
+            }
+
+            const allVoters = getAllAuthorizedVoters();
+            if (!(id in allVoters)) {
+                playUiSound('error');
+                statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-red-950/80 border border-red-500/50 text-red-300 block";
+                statusDiv.innerText = "❌ Unrecognized 4-digit Voter ID. Access denied.";
+                return;
+            }
+
+            const voterOwner = allVoters[id];
+            const voterDisplay = getVoterDisplayName(id);
+
+            // BLOCK SELF VOTING
+            if (voterOwner === targetName) {
+                playUiSound('error');
+                statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-red-950/80 border border-red-500/50 text-red-300 block";
+                statusDiv.innerText = `❌ Self-voting is disabled! Please vote for another team member.`;
+                return;
+            }
+
+            // CHECK ONE VOTE PER ID
+            const usedIDs = getUsedVoterIDs();
+            if (usedIDs.includes(id)) {
+                playUiSound('error');
+                statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-amber-950/80 border border-amber-500/50 text-amber-300 block";
+                statusDiv.innerText = `⚠️ ${voterDisplay} has already voted! Use 'Switch Account' to log in with a different ID.`;
+                return;
+            }
+
+            // RECORD OFFICIAL VOTE
+            playUiSound('vote');
+            const counts = getOfficialVoteCounts();
+            counts[targetName] = (counts[targetName] || 0) + 1;
+            saveOfficialVoteCounts(counts);
+
+            usedIDs.push(id);
+            saveUsedVoterIDs(usedIDs);
+
+            const ledger = getVoteLedger();
+            ledger[id] = targetName;
+            saveVoteLedger(ledger);
+
+            localStorage.setItem('roadSenseVotedMember', targetName);
+            localStorage.setItem('roadSenseVoterID', id);
+
+            unlockVaultState(targetName, false);
+
+            statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 block";
+            statusDiv.innerText = `🎉 ${voterDisplay} voted for ${targetName}! Live feed & standings updated.`;
+
+            renderLeaderboard();
+            // Glide this newly cast vote ONCE from the right side, then loop Leaderboard unlimitedly
+            updateLiveNewsTicker({ voterId: id, targetName: targetName });
+        }
+
+        function unlockVaultState(name, isInitialLoad = false) {
             hasVoted = true;
-            
-            // Unlock visual state
-            document.getElementById('vaultStatusDot').className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+            renderPollCards(name);
+
+            const statusDot = document.getElementById('vaultStatusDot');
+            if (statusDot) statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0";
+
             document.getElementById('navLotteryLabel').innerText = "🎰 2. RNG Lottery";
             document.getElementById('navRedeemLabel').innerText = "🔓 3. Redeem Code";
-            
-            // Toggle view panels from locked to unlocked
+
             document.getElementById('lotteryLockedCard').classList.add('hidden');
             document.getElementById('lotteryUnlockedContent').classList.remove('hidden');
             document.getElementById('redeemLockedCard').classList.add('hidden');
@@ -796,17 +1763,245 @@
             document.getElementById('chosenMemberSpan').innerText = name;
             const banner = document.getElementById('voteConfirmedBanner');
             banner.classList.remove('hidden');
-            banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            if (!isInitialLoad) {
+                banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
 
         // =====================================================================
-        // 4. RNG LOTTERY & REWARD POOL (CONFIGURED WITH GOOGLE DRIVE LINKS)
+        // 9. ADMIN (0000) GUEST ID ADD / PERMANENT DELETE & POLL CONTROLS
+        // =====================================================================
+        function renderAdminVoterRegistry() {
+            const listEl = document.getElementById('adminVoterRegistryList');
+            const countEl = document.getElementById('adminRegistryCount');
+            if (!listEl) return;
+
+            const customVoters = getCustomGuestVoters();
+            const usedIDs = getUsedVoterIDs();
+            const ledger = getVoteLedger();
+
+            const coreEntries = Object.entries(CORE_PROTECTED_VOTERS).map(([id, name]) => ({
+                id, name, isCore: true
+            }));
+            const guestEntries = Object.entries(customVoters).map(([id, name]) => ({
+                id, name: (name || "").trim() ? name : `(No Tag — Shows as ID ${id})`, isCore: false
+            }));
+
+            const allEntries = [...coreEntries, ...guestEntries];
+            if (countEl) countEl.innerText = `${coreEntries.length} Core • ${guestEntries.length} Added`;
+
+            listEl.innerHTML = allEntries.map(entry => {
+                const hasUsed = usedIDs.includes(entry.id);
+                const votedFor = ledger[entry.id] ? ` &rarr; ${ledger[entry.id]}` : "";
+                const statusBadge = hasUsed
+                    ? `<span class="px-1.5 py-0.5 text-[10px] mono-num rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">✓ Voted${votedFor}</span>`
+                    : `<span class="px-1.5 py-0.5 text-[10px] mono-num rounded bg-gray-800 text-gray-400 border border-gray-700">Pending</span>`;
+
+                const actionControl = entry.isCore
+                    ? `<span class="px-2 py-0.5 text-[10px] mono-num font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded">🔒 Core Protected</span>`
+                    : `<button type="button" onclick="adminDeleteVoterId('${entry.id}')" class="px-2 py-0.5 text-[10px] font-bold bg-red-600/80 hover:bg-red-500 text-white rounded transition cursor-pointer">🗑️ Delete ID</button>`;
+
+                return `
+                    <div class="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-[#121722] border border-[#232c3f] text-xs">
+                        <div class="flex items-center gap-2">
+                            <code class="mono-num font-bold text-sky-300 bg-[#1a2234] px-2 py-0.5 rounded">${entry.id}</code>
+                            <span class="text-gray-200 font-medium">${entry.name}</span>
+                            ${statusBadge}
+                        </div>
+                        <div>${actionControl}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function adminAddGuestVoterId() {
+            const idInput = document.getElementById('newGuestIdInput');
+            const labelInput = document.getElementById('newGuestLabelInput');
+            const rawId = (idInput.value || "").trim().toUpperCase();
+            const label = (labelInput.value || "").trim();
+
+            if (!/^[A-Z0-9]{4}$/.test(rawId)) {
+                playUiSound('error');
+                alert("Please enter a valid 4-character alphanumeric ID (e.g., 2048 or G001).");
+                return;
+            }
+
+            if (rawId === "0000" || CORE_PROTECTED_VOTERS[rawId]) {
+                playUiSound('error');
+                alert("This ID belongs to a protected system/core member and cannot be overwritten.");
+                return;
+            }
+
+            const customVoters = getCustomGuestVoters();
+            customVoters[rawId] = label;
+            saveCustomGuestVoters(customVoters);
+
+            playUiSound('login');
+            idInput.value = "";
+            labelInput.value = "";
+            renderAdminVoterRegistry();
+            updateLiveNewsTicker();
+        }
+
+        function adminGenerateRandomGuestId() {
+            const allVoters = getAllAuthorizedVoters();
+            let candidate = "";
+            do {
+                candidate = String(Math.floor(1000 + Math.random() * 9000));
+            } while (candidate === "0000" || (candidate in allVoters));
+
+            document.getElementById('newGuestIdInput').value = candidate;
+            adminAddGuestVoterId();
+        }
+
+        function adminDeleteVoterId(targetId) {
+            if (CORE_PROTECTED_VOTERS[targetId] || targetId === "0000") {
+                playUiSound('error');
+                alert("Core project experiment members are permanently protected and cannot be deleted!");
+                return;
+            }
+
+            const customVoters = getCustomGuestVoters();
+            if (!(targetId in customVoters)) return;
+
+            const ledger = getVoteLedger();
+            const votedCandidate = ledger[targetId];
+            if (votedCandidate) {
+                const counts = getOfficialVoteCounts();
+                if (counts[votedCandidate] > 0) {
+                    counts[votedCandidate] -= 1;
+                    saveOfficialVoteCounts(counts);
+                }
+                delete ledger[targetId];
+                saveVoteLedger(ledger);
+            }
+
+            singlePassVoteQueue = singlePassVoteQueue.filter(e => e.voterId !== targetId);
+
+            const usedIDs = getUsedVoterIDs().filter(item => item !== targetId);
+            saveUsedVoterIDs(usedIDs);
+
+            delete customVoters[targetId];
+            saveCustomGuestVoters(customVoters);
+
+            playUiSound('switch');
+            renderAdminVoterRegistry();
+            renderLeaderboard();
+            updateLiveNewsTicker();
+        }
+
+        function adminResetOfficialVotes() {
+            if (confirm("Reset all official votes to 0?")) {
+                localStorage.setItem('roadSense_voteCounts', JSON.stringify(DEFAULT_VOTE_COUNTS));
+                localStorage.removeItem('roadSense_usedVoterIDs');
+                localStorage.removeItem('roadSense_voteLedger');
+                localStorage.removeItem('roadSenseVotedMember');
+                singlePassVoteQueue = [];
+                renderAdminVoterRegistry();
+                renderLeaderboard();
+                updateLiveNewsTicker();
+                alert("All official votes and live feed reset to 0.");
+            }
+        }
+
+        function adminClearUsedIds() {
+            localStorage.removeItem('roadSense_usedVoterIDs');
+            localStorage.removeItem('roadSense_voteLedger');
+            localStorage.removeItem('roadSenseVotedMember');
+            singlePassVoteQueue = [];
+            renderAdminVoterRegistry();
+            updateLiveNewsTicker();
+            alert("Used status cleared! All IDs can vote again.");
+        }
+
+        function adminClearTestVotes() {
+            localStorage.removeItem('roadSense_testVotes');
+            renderLeaderboard();
+            alert("Test votes cleared.");
+        }
+
+        // =====================================================================
+        // 10. LIVE PERMANENT LEADERBOARD RENDERER
+        // =====================================================================
+        function renderLeaderboard() {
+            const counts = getOfficialVoteCounts();
+            const testCounts = getTestVoteCounts();
+
+            let totalOfficialVotes = 0;
+            CREW_MEMBERS.forEach(m => {
+                totalOfficialVotes += (counts[m.name] || 0);
+            });
+
+            document.getElementById('leaderboardTotalVotes').innerText = totalOfficialVotes;
+
+            const container = document.getElementById('leaderboardList');
+            if (!container) return;
+
+            const activeCrew = [...CREW_MEMBERS]
+                .filter(m => (counts[m.name] || 0) > 0 || (testCounts[m.name] || 0) > 0)
+                .sort((a, b) => (counts[b.name] || 0) - (counts[a.name] || 0));
+
+            if (activeCrew.length === 0) {
+                container.innerHTML = `
+                    <div class="recessed-well p-8 rounded-xl border border-[#232b3d] text-center space-y-2">
+                        <div class="text-2xl">🗳️</div>
+                        <div class="text-sm font-bold text-white">No Official Votes Cast Yet</div>
+                        <p class="text-xs text-gray-400">Cast the first verified vote in the Team Poll to initialize the live standings!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const rankBadges = ["🥇 1st", "🥈 2nd", "🥉 3rd", "4th", "5th"];
+            const rankColors = ["text-amber-400", "text-yellow-400", "text-purple-300", "text-sky-300", "text-gray-400"];
+            const barColors = ["bg-amber-400", "bg-yellow-400", "bg-purple-400", "bg-sky-400", "bg-emerald-400"];
+
+            container.innerHTML = activeCrew.map((m, idx) => {
+                const voteCount = counts[m.name] || 0;
+                const testVoteCount = testCounts[m.name] || 0;
+                const pct = totalOfficialVotes > 0 ? Math.round((voteCount / totalOfficialVotes) * 100) : 0;
+                const positionBadge = rankBadges[idx] || `${idx + 1}th`;
+
+                const testTag = testVoteCount > 0
+                    ? `<span class="text-[10px] text-sky-400 mono-num ml-2">(+${testVoteCount} Test)</span>`
+                    : "";
+
+                return `
+                    <div class="recessed-well p-3.5 rounded-xl border border-[#232b3d] space-y-2 transition hover:border-[#323d56]">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <span class="mono-num text-xs font-black ${rankColors[idx]} px-2.5 py-0.5 rounded bg-[#161c2b] border border-[#2b364e] shrink-0">
+                                    ${positionBadge}
+                                </span>
+                                <div class="min-w-0">
+                                    <h4 class="text-sm font-bold text-white truncate">${m.name}</h4>
+                                    <span class="text-[10px] text-gray-400 mono-num block truncate">${m.role}</span>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="text-sm sm:text-base font-black text-emerald-400 mono-num">${voteCount} ${voteCount === 1 ? 'Vote' : 'Votes'}</span>
+                                <span class="text-xs text-gray-400 mono-num ml-1">(${pct}%)</span>
+                                ${testTag}
+                            </div>
+                        </div>
+
+                        <div class="w-full bg-[#161b26] rounded-full h-2 overflow-hidden border border-[#22293a]">
+                            <div class="${barColors[idx]} h-full rounded-full transition-all duration-700" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // =====================================================================
+        // 11. RNG LOTTERY & REWARD POOL
         // =====================================================================
         const PRIZE_POOL = {
             first: {
                 tier: "🏆 1st PRIZE // MAIN SOUNDTRACK",
-                title: "Official RoadSense ADAS Theme (music.mpeg)",
-                desc: "You've unlocked the official main background soundtrack of RoadSense ADAS!",
+                title: "Official RoadSense ADAS Theme",
+                desc: "Unlocked the official main studio soundtrack of RoadSense ADAS.",
                 url: "music.mpeg",
                 redirectUrl: "https://drive.google.com/file/d/1MKol3ZnOTRjucUFhMYC7wFQ6nSNPIjPB/view?usp=drive_link",
                 downloadUrl: "https://drive.google.com/uc?export=download&id=1MKol3ZnOTRjucUFhMYC7wFQ6nSNPIjPB",
@@ -814,8 +2009,8 @@
             },
             second: {
                 tier: "🥈 2nd PRIZE // EXCLUSIVE RICKROLL",
-                title: "Exclusive Rickroll Master (music1.mpeg)",
-                desc: "You've unlocked the custom exclusive Rickroll anthem!",
+                title: "Exclusive Mystery Audio Track",
+                desc: "Unlocked the custom exclusive bonus audio track!",
                 url: "music1.mpeg",
                 redirectUrl: "https://drive.google.com/file/d/1sIsLznY5wm9eAxj77YQrCGq8ZiA9siyy/view?usp=drive_link",
                 downloadUrl: "https://drive.google.com/uc?export=download&id=1sIsLznY5wm9eAxj77YQrCGq8ZiA9siyy",
@@ -951,7 +2146,7 @@
             let step = 0;
             const timer = setInterval(() => {
                 icon.innerText = icons[step % icons.length];
-                title.innerText = "GENERATING 10-DIGIT STEAM KEY...";
+                title.innerText = "GENERATING 10-DIGIT KEY...";
                 sub.innerText = `Entropy Hash: ${Math.random().toString(36).substring(2, 12).toUpperCase()}`;
                 step++;
 
@@ -959,6 +2154,7 @@
                     clearInterval(timer);
                     hasRolledThisVisit = true;
                     btn.innerText = "🔒 1 Roll Used Per Visit";
+                    playUiSound('vote');
 
                     const code = generateTenDigitSteamKey();
                     currentWonCode = code;
@@ -971,6 +2167,13 @@
                     document.getElementById('wonTierBadge').innerText = prize.tier;
                     document.getElementById('wonRedeemCode').innerText = code;
                     card.classList.remove('hidden');
+
+                    const reminderBar = document.getElementById('sessionKeyReminderBar');
+                    const reminderSpan = document.getElementById('reminderKeySpan');
+                    if (reminderBar && reminderSpan) {
+                        reminderSpan.innerText = code;
+                        reminderBar.classList.remove('hidden');
+                    }
                 }
             }, 80);
         }
@@ -979,22 +2182,23 @@
             if (!currentWonCode) return;
             navigator.clipboard?.writeText(currentWonCode);
             const btn = document.getElementById('copyCodeBtn');
-            btn.innerText = "✅ Copied!";
-            setTimeout(() => { btn.innerText = "📋 Copy Key"; }, 2000);
+            if (btn) {
+                btn.innerText = "✅ Copied!";
+                setTimeout(() => { btn.innerText = "📋 Copy Key"; }, 2000);
+            }
         }
 
         function openRedeemPortalTab() {
-            window.location.hash = "redeem";
             switchPageSection('redeem');
             const input = document.getElementById('codeInputBox');
             if (input) {
                 input.value = "";
-                input.focus();
+                setTimeout(() => input.focus(), 100);
             }
         }
 
         // =====================================================================
-        // 5. REDEEM PORTAL & DIRECT DOWNLOAD/REDIRECT HANDLERS
+        // 12. REDEEM PORTAL & REWARD PLAYBACK PAUSE/RESUME LIFECYCLE
         // =====================================================================
         function redeemEnteredCode() {
             const rawInput = (document.getElementById('codeInputBox').value || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
@@ -1005,23 +2209,21 @@
 
             const item = ACTIVE_REDEEM_KEYS[rawInput];
             if (!item || rawInput.length !== 10) {
-                err.innerText = "Invalid 10-digit key! Please roll the RNG Lottery first and enter your exact 10-digit key.";
+                playUiSound('error');
+                err.innerText = "Invalid 10-digit key! Roll the RNG Lottery first and enter your exact key.";
                 err.classList.remove('hidden');
                 card.classList.add('hidden');
                 return;
             }
 
+            playUiSound('login');
             activeUnlockedItem = item;
             err.classList.add('hidden');
             document.getElementById('unlockedTierText').innerText = item.tier;
             document.getElementById('unlockedTitleText').innerText = item.title;
             document.getElementById('unlockedDescText').innerText = item.desc;
 
-            if (item.isDownload) {
-                btnAction.innerHTML = `📥 Download Video`;
-            } else {
-                btnAction.innerHTML = `↗ Redirect to Media`;
-            }
+            btnAction.innerHTML = `⬇ Download`;
 
             if (item.type === 'audio') {
                 stage.innerHTML = `
@@ -1072,7 +2274,6 @@
 
         function triggerDirectBrowserDownload() {
             if (!activeUnlockedItem) return;
-            
             if (activeUnlockedItem.isDownload) {
                 const downloadLink = activeUnlockedItem.downloadUrl || activeUnlockedItem.redirectUrl;
                 window.open(downloadLink, '_blank');
