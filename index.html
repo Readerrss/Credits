@@ -142,8 +142,8 @@
     <!-- BACKGROUND AUDIO ENGINE -->
     <audio id="creditsAudio" preload="auto" loop></audio>
 
-    <!-- TAP-TO-START OVERLAY -->
-    <div id="audioUnlockOverlay" style="display: none;" onclick="unlockAudioAndStart()" class="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-6 text-center cursor-pointer backdrop-blur-sm">
+    <!-- TAP-TO-START OVERLAY (ALWAYS SHOWN ON ENTRY ACROSS PC, MOBILE & REDIRECTS) -->
+    <div id="audioUnlockOverlay" style="display: flex;" onclick="unlockAudioAndStart()" class="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-6 text-center cursor-pointer backdrop-blur-md">
         <div class="instrument-panel p-6 sm:p-8 rounded-2xl max-w-md w-full border border-emerald-500/40 space-y-4 section-animate">
             <div class="text-4xl">🎬</div>
             <span class="px-2.5 py-0.5 text-[11px] mono-num font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded">
@@ -161,37 +161,44 @@
         </div>
     </div>
 
-    <!-- TOP NAVIGATION HEADER -->
+    <!-- TOP NAVIGATION HEADER (NON-OVERLAPPING ON ANDROID & DESKTOP) -->
     <header class="w-full border-b border-[#232938] bg-[#07090d]/95 backdrop-blur-md shrink-0 z-30">
-        <div class="w-full max-w-6xl mx-auto px-3 sm:px-6 py-2.5 flex flex-col lg:flex-row items-center justify-between gap-2.5">
+        <div class="w-full max-w-6xl mx-auto px-3 sm:px-6 py-2.5 flex flex-col lg:flex-row items-center justify-between gap-2">
             
-            <!-- Brand & Mobile Controls -->
+            <!-- Row 1 on Mobile / Left Group on Desktop -->
             <div class="w-full lg:w-auto flex items-center justify-between gap-2 shrink-0">
                 <div class="flex items-center gap-2 min-w-0">
                     <span id="vaultStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
-                    <h1 class="text-xs sm:text-sm xl:text-base font-bold text-white tracking-tight whitespace-nowrap">
+                    <h1 class="text-xs sm:text-sm xl:text-base font-bold text-white tracking-tight truncate">
                         ROADSENSE // CREDITS &amp; VAULT
                     </h1>
-                    <span id="activeTrackBadge" class="px-2 py-0.5 text-[10px] mono-num font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 rounded whitespace-nowrap">
+                    <!-- Desktop OST Badge (Hidden on mobile so it never collides with timer) -->
+                    <span class="active-track-badge hidden lg:inline-block px-2 py-0.5 text-[10px] mono-num font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 rounded whitespace-nowrap">
                         OST: DEFAULT
                     </span>
                 </div>
 
-                <!-- Mobile Audio Clock & Exit -->
-                <div class="flex items-center gap-1.5 lg:hidden shrink-0">
-                    <div class="flex items-center gap-1.5 px-2 py-1 rounded-lg recessed-well border border-[#263044]">
-                        <div class="flex items-end gap-0.5 h-3">
-                            <span class="eq-bar w-0.5 bg-emerald-400 eq-1 rounded-full"></span>
-                            <span class="eq-bar w-0.5 bg-sky-400 eq-2 rounded-full"></span>
-                            <span class="eq-bar w-0.5 bg-emerald-400 eq-3 rounded-full"></span>
-                        </div>
-                        <span id="songClockMobile" class="mono-num text-[10px] text-gray-200">00:00</span>
-                        <button type="button" onclick="toggleAudioMute()" class="mute-btn-label text-[10px] text-sky-400 hover:text-sky-300 font-semibold ml-0.5 cursor-pointer">
-                            Mute
-                        </button>
+                <!-- Mobile Exit Button (Top Right) -->
+                <button type="button" onclick="exitCreditsToCockpit()" class="lg:hidden px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold transition cursor-pointer shrink-0">
+                    ✕ Exit
+                </button>
+            </div>
+
+            <!-- Row 2 on Mobile: Dedicated Non-Overlapping OST Badge + Audio Timer/Mute Bar -->
+            <div class="w-full flex items-center justify-between gap-2 lg:hidden">
+                <span class="active-track-badge px-2 py-1 text-[10px] mono-num font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 rounded truncate max-w-[58%]">
+                    OST: DEFAULT
+                </span>
+
+                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg recessed-well border border-[#263044] shrink-0">
+                    <div class="flex items-end gap-0.5 h-3">
+                        <span class="eq-bar w-0.5 bg-emerald-400 eq-1 eq-paused rounded-full"></span>
+                        <span class="eq-bar w-0.5 bg-sky-400 eq-2 eq-paused rounded-full"></span>
+                        <span class="eq-bar w-0.5 bg-emerald-400 eq-3 eq-paused rounded-full"></span>
                     </div>
-                    <button type="button" onclick="exitCreditsToCockpit()" class="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold transition cursor-pointer">
-                        ✕
+                    <span id="songClockMobile" class="mono-num text-[10px] text-gray-200">00:00</span>
+                    <button type="button" onclick="toggleAudioMute()" class="mute-btn-label text-[10px] text-sky-400 hover:text-sky-300 font-semibold ml-1 cursor-pointer">
+                        Mute
                     </button>
                 </div>
             </div>
@@ -216,9 +223,9 @@
             <div class="hidden lg:flex items-center gap-2 shrink-0">
                 <div class="flex items-center gap-2 px-2.5 py-1 rounded-lg recessed-well border border-[#263044]">
                     <div class="flex items-end gap-0.5 h-3.5">
-                        <span class="eq-bar w-1 bg-emerald-400 eq-1 rounded-full"></span>
-                        <span class="eq-bar w-1 bg-sky-400 eq-2 rounded-full"></span>
-                        <span class="eq-bar w-1 bg-emerald-400 eq-3 rounded-full"></span>
+                        <span class="eq-bar w-1 bg-emerald-400 eq-1 eq-paused rounded-full"></span>
+                        <span class="eq-bar w-1 bg-sky-400 eq-2 eq-paused rounded-full"></span>
+                        <span class="eq-bar w-1 bg-emerald-400 eq-3 eq-paused rounded-full"></span>
                     </div>
                     <span id="songClock" class="mono-num text-[11px] text-gray-200">00:00</span>
                     <button type="button" id="muteToggleBtn" onclick="toggleAudioMute()" class="mute-btn-label text-[11px] text-sky-400 hover:text-sky-300 font-semibold ml-1 cursor-pointer">
@@ -469,7 +476,7 @@
                         </span>
                     </div>
 
-                    <!-- Add Guest Voter ID (1 Smart Button: Uses typed ID or auto-generates random 4-digit ID if blank) -->
+                    <!-- Add Guest Voter ID -->
                     <div class="recessed-well p-3.5 rounded-xl border border-[#283248] space-y-2.5">
                         <div class="text-xs font-bold text-white">
                             ➕ Add Voter ID
@@ -790,7 +797,8 @@
         const songClockMobile = document.getElementById('songClockMobile');
         const creditsScrollViewport = document.getElementById('creditsScrollViewport');
 
-        let isAutoRolling = true;
+        let hasStartedExperience = false;
+        let isAutoRolling = false;
         let autoRollFrame = null;
         let lastScrollTime = 0;
         let scrollSubPixelAccumulator = 0;
@@ -891,6 +899,12 @@
         let currentTrackProfile = null;
         let currentCandidateIndex = 0;
 
+        function setTrackBadgeText(text) {
+            document.querySelectorAll('.active-track-badge').forEach(badge => {
+                badge.innerText = text;
+            });
+        }
+
         function setEqAnimationState(isPlaying) {
             document.querySelectorAll('.eq-bar').forEach(el => {
                 if (isPlaying && !creditsAudio.muted) {
@@ -904,7 +918,7 @@
         function loadAndPlayTrackProfile(profileKey, forceRestart = false) {
             const targetProfile = TRACK_CANDIDATES[profileKey] ? profileKey : 'default';
             if (currentTrackProfile === targetProfile && !forceRestart && creditsAudio.src) {
-                if (creditsAudio.paused && !document.hidden && !bgAudioWasPlayingBeforeReward && audioUnlockOverlay.style.display === 'none') {
+                if (hasStartedExperience && creditsAudio.paused && !document.hidden && !bgAudioWasPlayingBeforeReward) {
                     creditsAudio.play().catch(() => {});
                 }
                 return;
@@ -912,8 +926,7 @@
 
             currentTrackProfile = targetProfile;
             currentCandidateIndex = 0;
-            const badge = document.getElementById('activeTrackBadge');
-            if (badge) badge.innerText = TRACK_LABELS[targetProfile] || "OST: DEFAULT";
+            setTrackBadgeText(TRACK_LABELS[targetProfile] || "OST: DEFAULT");
 
             tryLoadCandidateSource();
         }
@@ -924,8 +937,7 @@
                 if (currentTrackProfile !== 'default') {
                     currentTrackProfile = 'default';
                     currentCandidateIndex = 0;
-                    const badge = document.getElementById('activeTrackBadge');
-                    if (badge) badge.innerText = TRACK_LABELS.default;
+                    setTrackBadgeText(TRACK_LABELS.default);
                     tryLoadCandidateSource();
                 }
                 return;
@@ -937,18 +949,11 @@
             creditsAudio.volume = 0.9;
             creditsAudio.load();
 
-            if (!document.hidden && !bgAudioWasPlayingBeforeReward) {
-                const playPromise = creditsAudio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        audioUnlockOverlay.style.display = 'none';
-                        setEqAnimationState(true);
-                    }).catch((err) => {
-                        if (err && err.name === 'NotAllowedError') {
-                            audioUnlockOverlay.style.display = 'flex';
-                        }
-                    });
-                }
+            // Only play immediately if user has already clicked "Start Experience"
+            if (hasStartedExperience && !document.hidden && !bgAudioWasPlayingBeforeReward) {
+                creditsAudio.play().then(() => {
+                    setEqAnimationState(true);
+                }).catch(() => {});
             }
         }
 
@@ -970,28 +975,25 @@
         });
 
         function unlockAudioAndStart() {
+            hasStartedExperience = true;
             audioUnlockOverlay.style.display = 'none';
             creditsAudio.volume = 0.9;
+            creditsAudio.currentTime = 0;
             creditsAudio.play().then(() => setEqAnimationState(true)).catch(() => {});
+            creditsScrollViewport.scrollTop = 0;
             startAutoRoll(true);
         }
-
-        document.addEventListener('click', () => {
-            if (creditsAudio.paused && !document.hidden && audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
-                creditsAudio.play().catch(() => {});
-            }
-        }, { once: true });
 
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
                 creditsAudio.pause();
-            } else if (audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
+            } else if (hasStartedExperience && !bgAudioWasPlayingBeforeReward) {
                 creditsAudio.play().catch(() => {});
             }
         });
         window.addEventListener('blur', () => creditsAudio.pause());
         window.addEventListener('focus', () => {
-            if (audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
+            if (hasStartedExperience && !bgAudioWasPlayingBeforeReward) {
                 creditsAudio.play().catch(() => {});
             }
         });
@@ -1285,7 +1287,6 @@
             updateLiveNewsTicker();
 
             creditsScrollViewport.scrollTop = 0;
-            startAutoRoll(true);
 
             if (window.location.hash.startsWith('#redeem')) {
                 history.replaceState(null, "", window.location.pathname);
@@ -1293,13 +1294,6 @@
             } else if (window.location.hash.startsWith('#leaderboard')) {
                 history.replaceState(null, "", window.location.pathname);
                 switchPageSection('leaderboard');
-            }
-        });
-
-        window.addEventListener('load', () => {
-            const creditsSec = document.getElementById('viewCreditsAndVote');
-            if (creditsSec && creditsSec.style.display !== 'none' && isAutoRolling) {
-                startAutoRoll(false);
             }
         });
 
@@ -1342,7 +1336,7 @@
             if (section === 'leaderboard') {
                 renderLeaderboard();
             }
-            if (creditsAudio.paused && audioUnlockOverlay.style.display === 'none' && !bgAudioWasPlayingBeforeReward) {
+            if (hasStartedExperience && creditsAudio.paused && !bgAudioWasPlayingBeforeReward) {
                 creditsAudio.play().catch(() => {});
             }
         }
@@ -1458,7 +1452,7 @@
             if (codeInput) codeInput.value = "";
 
             activeUnlockedItem = null;
-            if (bgAudioWasPlayingBeforeReward && audioUnlockOverlay.style.display === 'none' && !document.hidden) {
+            if (bgAudioWasPlayingBeforeReward && hasStartedExperience && !document.hidden) {
                 creditsAudio.play().catch(() => {});
                 bgAudioWasPlayingBeforeReward = false;
             }
@@ -1533,7 +1527,6 @@
                 document.getElementById('wonRedeemCode').innerText = myTicket.code;
                 card?.classList.remove('hidden');
 
-                // Pre-fill Redeem input box automatically for this account
                 if (codeInput) codeInput.value = myTicket.code;
             } else {
                 currentWonCode = "";
@@ -1912,7 +1905,6 @@
             const allVoters = getAllAuthorizedVoters();
 
             let rawId = (idInput.value || "").trim().toUpperCase();
-            // Auto-generate random 4-digit ID if left blank
             if (!rawId) {
                 do {
                     rawId = String(Math.floor(1000 + Math.random() * 9000));
@@ -1986,7 +1978,6 @@
             updateLiveNewsTicker();
         }
 
-        // Unified Master Reset: Resets Official Votes, Test Votes, Used IDs & All Lottery Tickets
         function adminResetOfficialVotes() {
             if (confirm("Reset all votes (official & test), used IDs, and all accounts' RNG Lottery rolls?")) {
                 localStorage.setItem('roadSense_voteCounts', JSON.stringify(DEFAULT_VOTE_COUNTS));
@@ -2368,7 +2359,7 @@
                 });
 
                 const restoreBgMusic = () => {
-                    if (bgAudioWasPlayingBeforeReward && audioUnlockOverlay.style.display === 'none' && !document.hidden) {
+                    if (bgAudioWasPlayingBeforeReward && hasStartedExperience && !document.hidden) {
                         creditsAudio.play().catch(() => {});
                         bgAudioWasPlayingBeforeReward = false;
                     }
