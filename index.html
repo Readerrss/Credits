@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RoadSense ADAS | End Credits, Team Poll & Telemetry Vault</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Real-Time Cross-Device Cloud Sync Client -->
     <script src="https://unpkg.com/mqtt@5.10.3/dist/mqtt.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@500;600;700&display=swap');
@@ -169,17 +170,13 @@
             <!-- Row 1 on Mobile / Left Group on Desktop -->
             <div class="w-full lg:w-auto flex items-center justify-between gap-2 shrink-0">
                 <div class="flex items-center gap-2 min-w-0">
-                    <span id="vaultStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
+                    <span id="vaultStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0" title="Live Cloud Sync Active"></span>
                     <h1 class="text-xs sm:text-sm xl:text-base font-bold text-white tracking-tight truncate">
                         ROADSENSE // CREDITS &amp; VAULT
                     </h1>
                     <!-- Desktop OST Badge (Hidden on mobile so it never collides with timer) -->
                     <span class="active-track-badge hidden lg:inline-block px-2 py-0.5 text-[10px] mono-num font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 rounded whitespace-nowrap">
                         OST: DEFAULT
-                    </span>
-                    <span id="cloudSyncBadge" class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-[10px] mono-num font-semibold bg-sky-500/10 text-sky-300 border border-sky-500/30 rounded whitespace-nowrap" title="Cross-device real-time cloud synchronization status">
-                        <span id="cloudSyncDot" class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
-                        <span id="cloudSyncText">CLOUD SYNC</span>
                     </span>
                 </div>
 
@@ -249,11 +246,9 @@
     <main id="creditsScrollViewport" class="flex-1 w-full max-w-5xl mx-auto overflow-y-auto px-3 sm:px-6 py-4 sm:py-5">
 
         <!-- =================================================================== -->
-        <!-- SIDE-SCROLLING LIVE BROADCAST BAR (STICKY AT TOP OF VIEWPORT)       -->
-        <!-- - New Vote glides from right to left STRICTLY ONCE                  -->
-        <!-- - Leaderboard Standings glide from right to left UNLIMITEDLY        -->
+        <!-- SIDE-SCROLLING LIVE BROADCAST BAR (SYNCED ACROSS ALL DEVICES)       -->
         <!-- =================================================================== -->
-        <div id="liveNewsTickerBar" class="hidden sticky top-0 z-20 mb-4 instrument-panel rounded-xl border border-emerald-500/35 overflow-hidden shadow-lg backdrop-blur-md bg-[#11141c]/95">
+        <div id="liveNewsTickerBar" class="hidden mb-4 instrument-panel rounded-xl border border-emerald-500/35 overflow-hidden shadow-lg">
             <div class="px-3 sm:px-4 py-2 flex items-center gap-2.5">
                 <span id="liveFeedBadge" class="px-2.5 py-0.5 text-[10px] mono-num font-extrabold uppercase bg-amber-400 text-[#1a1202] rounded-md shrink-0 flex items-center gap-1.5 shadow-sm">
                     <span class="w-1.5 h-1.5 rounded-full bg-[#1a1202] animate-ping"></span>
@@ -416,7 +411,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#232938] pb-3">
                     <div>
                         <span class="text-[10px] mono-num uppercase tracking-wider text-amber-400 font-bold block">
-                            AUTHENTICATED TEAM POLL
+                            AUTHENTICATED TEAM POLL // GLOBAL CLOUD SYNC
                         </span>
                         <h3 class="text-lg sm:text-xl font-bold text-white">
                             Vote for Your Favorite Project Member
@@ -502,7 +497,7 @@
                     <div class="recessed-well p-3.5 rounded-xl border border-[#283248] space-y-2.5">
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <div>
-                                <span class="text-xs font-bold text-white block">📋 Registered Voter IDs</span>
+                                <span class="text-xs font-bold text-white block">📋 Registered Voter IDs (Synced Across Devices)</span>
                                 <span id="adminRegistryCount" class="text-[11px] mono-num text-gray-400"></span>
                             </div>
                             <button type="button" onclick="adminResetOfficialVotes()" class="px-3 py-1.5 rounded-lg bg-red-950/80 hover:bg-red-900 border border-red-500/50 text-red-200 text-xs font-semibold transition cursor-pointer">
@@ -721,7 +716,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#232938] pb-4">
                     <div>
                         <span class="px-2.5 py-0.5 text-[11px] mono-num font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded">
-                            PERMANENT TELEMETRY LEADERBOARD
+                            PERMANENT TELEMETRY LEADERBOARD // LIVE CLOUD SYNC
                         </span>
                         <h2 class="text-xl sm:text-3xl font-extrabold text-white mt-2">
                             Official Team Poll Standings
@@ -748,7 +743,7 @@
 
     <script>
         // =====================================================================
-        // 1. PROTECTED CORE VOTERS & DYNAMIC GUEST REGISTRY
+        // 1. PROTECTED CORE VOTERS & CREW CONFIGURATION
         // =====================================================================
         const CORE_PROTECTED_VOTERS = {
             "1117": "Mitadru Karmakar",
@@ -816,11 +811,6 @@
         let hasVoted = false;
         let activeSessionVoterId = null;
         let crewShuffledList = [];
-
-        try {
-            localStorage.removeItem('roadSense_voteHistoryOrder');
-            localStorage.removeItem('roadSense_newsLog');
-        } catch (e) {}
 
         // =====================================================================
         // 2. SYNTHESIZED WEB AUDIO UI SOUND EFFECTS
@@ -991,11 +981,8 @@
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
                 creditsAudio.pause();
-            } else {
-                if (hasStartedExperience && !bgAudioWasPlayingBeforeReward) {
-                    creditsAudio.play().catch(() => {});
-                }
-                pullCloudStateFromNtfy(false);
+            } else if (hasStartedExperience && !bgAudioWasPlayingBeforeReward) {
+                creditsAudio.play().catch(() => {});
             }
         });
         window.addEventListener('blur', () => creditsAudio.pause());
@@ -1003,7 +990,6 @@
             if (hasStartedExperience && !bgAudioWasPlayingBeforeReward) {
                 creditsAudio.play().catch(() => {});
             }
-            pullCloudStateFromNtfy(false);
         });
         window.addEventListener('pagehide', () => creditsAudio.pause());
 
@@ -1022,742 +1008,53 @@
         }
 
         // =====================================================================
-        // 4. PRIZE POOL DEFINITIONS & COMPACT WIRE SERIALIZATION
+        // 4. REAL-TIME GLOBAL CLOUD SYNC ENGINE + CONFLICT-FREE STATE MERGER
+        // - Synchronizes votes, used Voter IDs, custom guest IDs, lottery tickets,
+        //   redeem keys, and live vote ticker announcements across ALL devices!
         // =====================================================================
-        const PRIZE_POOL = {
-            first: {
-                tier: "🏆 1st PRIZE // MAIN SOUNDTRACK",
-                title: "Official RoadSense ADAS Theme",
-                desc: "Unlocked the official main studio soundtrack of RoadSense ADAS.",
-                url: "music.mpeg",
-                redirectUrl: "https://drive.google.com/file/d/1MKol3ZnOTRjucUFhMYC7wFQ6nSNPIjPB/view?usp=drive_link",
-                downloadUrl: "https://drive.google.com/uc?export=download&id=1MKol3ZnOTRjucUFhMYC7wFQ6nSNPIjPB",
-                type: "audio"
-            },
-            second: {
-                tier: "🥈 2nd PRIZE // EXCLUSIVE RICKROLL",
-                title: "Exclusive Mystery Audio Track",
-                desc: "Unlocked the custom exclusive bonus audio track!",
-                url: "music1.mpeg",
-                redirectUrl: "https://drive.google.com/file/d/1sIsLznY5wm9eAxj77YQrCGq8ZiA9siyy/view?usp=drive_link",
-                downloadUrl: "https://drive.google.com/uc?export=download&id=1sIsLznY5wm9eAxj77YQrCGq8ZiA9siyy",
-                type: "audio"
-            },
-            videos: [
-                {
-                    tier: "🎬 3rd PRIZE // BTS FIELD VIDEO 1",
-                    title: "Behind-The-Scenes Video 1: Highway Traffic & Cut-In Test",
-                    desc: "Live smartphone telemetry test tracking vehicles in dense Indian traffic.",
-                    url: "Video1.mp4",
-                    redirectUrl: "https://drive.google.com/file/d/121SMIjgqfAwIwrB5OG1aufoUCyVeci8v/view?usp=drive_link",
-                    downloadUrl: "https://drive.google.com/uc?export=download&id=121SMIjgqfAwIwrB5OG1aufoUCyVeci8v",
-                    type: "video",
-                    isDownload: true
-                },
-                {
-                    tier: "🎬 3rd PRIZE // BTS FIELD VIDEO 2",
-                    title: "Behind-The-Scenes Video 2: HP Victus Laptop Dashcam Test",
-                    desc: "Behind-the-scenes capture testing real-time collision urgency.",
-                    url: "Video2.mp4",
-                    redirectUrl: "https://drive.google.com/file/d/1GCKHFaTwVjJ8PBdlbYYKtd55Mgec3fqM/view?usp=drive_link",
-                    downloadUrl: "https://drive.google.com/uc?export=download&id=1GCKHFaTwVjJ8PBdlbYYKtd55Mgec3fqM",
-                    type: "video",
-                    isDownload: true
-                }
-            ],
-            photos: [
-                {
-                    tier: "📸 4th PRIZE // BTS PHOTO 1",
-                    title: "Behind-The-Scenes Photo 1: Early Prototype Snapshot",
-                    desc: "Archival snapshot from our perception engine development phase.",
-                    url: "Photo1.jpeg",
-                    redirectUrl: "https://drive.google.com/file/d/1ysfzs1DHAB8zW-yP6_N1HIyKMw9dsXdF/view?usp=drive_link",
-                    downloadUrl: "https://drive.google.com/uc?export=download&id=1ysfzs1DHAB8zW-yP6_N1HIyKMw9dsXdF",
-                    type: "image"
-                },
-                {
-                    tier: "📸 4th PRIZE // BTS PHOTO 2",
-                    title: "Behind-The-Scenes Photo 2: Night Monsoon Rain Test",
-                    desc: "Testing YOLO bounding-box lock through heavy night rain droplets.",
-                    url: "Photo2.jpeg",
-                    redirectUrl: "https://drive.google.com/file/d/1M54ohg1QB1HsbtPSVrbFhdvkwpJecLb7/view?usp=drive_link",
-                    downloadUrl: "https://drive.google.com/uc?export=download&id=1M54ohg1QB1HsbtPSVrbFhdvkwpJecLb7",
-                    type: "image"
-                },
-                {
-                    tier: "📸 4th PRIZE // BTS PHOTO 3",
-                    title: "Behind-The-Scenes Photo 3: TensorRT High-Confidence Lock",
-                    desc: "TensorRT (.engine) benchmark locking onto bus_truck (0.96) & pedestrian.",
-                    url: "Photo3.jpeg",
-                    redirectUrl: "https://drive.google.com/file/d/1zJqe3l38hpV_JnVCzSguMAAPoI8_rWK2/view?usp=drive_link",
-                    downloadUrl: "https://drive.google.com/uc?export=download&id=1zJqe3l38hpV_JnVCzSguMAAPoI8_rWK2",
-                    type: "image"
-                },
-                {
-                    tier: "📸 4th PRIZE // BTS PHOTO 4",
-                    title: "Behind-The-Scenes Photo 4: EDA & Spatial Heatmaps",
-                    desc: "Exploratory Data Analysis showing bounding-box spatial density.",
-                    url: "Photo4.jpeg",
-                    redirectUrl: "https://drive.google.com/file/d/1oDCaYXKkJPdXmW7eVpjB4DjnwTka_1jt/view?usp=drive_link",
-                    downloadUrl: "https://drive.google.com/uc?export=download&id=1oDCaYXKkJPdXmW7eVpjB4DjnwTka_1jt",
-                    type: "image"
-                },
-                {
-                    tier: "📸 4th PRIZE // BTS PHOTO 5",
-                    title: "Behind-The-Scenes Photo 5: Bus Mosaic Batch",
-                    desc: "Training batch mosaic augmentation verifying bus and rider detection.",
-                    url: "Photo5.jpeg",
-                    redirectUrl: "https://drive.google.com/file/d/17iaA0iNYfIRYHrJTccIVrC0iyF_QgWAX/view?usp=drive_link",
-                    downloadUrl: "https://drive.google.com/uc?export=download&id=17iaA0iNYfIRYHrJTccIVrC0iyF_QgWAX",
-                    type: "image"
-                },
-                {
-                    tier: "📸 4th PRIZE // BTS PHOTO 6",
-                    title: "Behind-The-Scenes Photo 6: Dense Traffic Mosaic",
-                    desc: "IDD training batch with dense multi-class annotations.",
-                    url: "Photo6.jpeg",
-                    redirectUrl: "https://drive.google.com/file/d/1XbVzh8i7IAdzIx1bbx3o-9AacgIvXdNa/view?usp=drive_link",
-                    downloadUrl: "https://drive.google.com/uc?export=download&id=1XbVzh8i7IAdzIx1bbx3o-9AacgIvXdNa",
-                    type: "image"
-                },
-                {
-                    tier: "📸 4th PRIZE // BTS PHOTO 7",
-                    title: "Behind-The-Scenes Photo 7: Jupyter Notebook Verification",
-                    desc: "Dataset verification script plotting green ground-truth YOLO boxes.",
-                    url: "Photo7.jpeg",
-                    redirectUrl: "https://drive.google.com/file/d/1lNAl4NDcskxEgVfxdivBCS8zz4lZH-X9/view?usp=drive_link",
-                    downloadUrl: "https://drive.google.com/uc?export=download&id=1lNAl4NDcskxEgVfxdivBCS8zz4lZH-X9",
-                    type: "image"
-                }
-            ]
-        };
-
-        function prizeToRef(prizeObj) {
-            if (!prizeObj) return "first";
-            if (typeof prizeObj === "string") return prizeObj;
-            if (prizeObj.url === PRIZE_POOL.first.url) return "first";
-            if (prizeObj.url === PRIZE_POOL.second.url) return "second";
-            for (let i = 0; i < PRIZE_POOL.videos.length; i++) {
-                if (prizeObj.url === PRIZE_POOL.videos[i].url) return `v${i}`;
-            }
-            for (let i = 0; i < PRIZE_POOL.photos.length; i++) {
-                if (prizeObj.url === PRIZE_POOL.photos[i].url) return `p${i}`;
-            }
-            return "first";
-        }
-
-        function refToPrize(ref) {
-            if (!ref) return PRIZE_POOL.first;
-            if (typeof ref === "object" && ref.tier) return ref;
-            if (ref === "first") return PRIZE_POOL.first;
-            if (ref === "second") return PRIZE_POOL.second;
-            if (typeof ref === "string" && ref.startsWith("v")) {
-                const idx = parseInt(ref.slice(1), 10);
-                return PRIZE_POOL.videos[idx] || PRIZE_POOL.videos[0];
-            }
-            if (typeof ref === "string" && ref.startsWith("p")) {
-                const idx = parseInt(ref.slice(1), 10);
-                return PRIZE_POOL.photos[idx] || PRIZE_POOL.photos[0];
-            }
-            return PRIZE_POOL.first;
-        }
-
-        // =====================================================================
-        // 5. REAL-TIME CROSS-DEVICE CLOUD SYNC ENGINE & CRDT LEDGER STORE
-        // =====================================================================
-        const SYNC_ROOM_KEY = "roadsense_adas_tiu2027_vault_v3";
-        const NTFY_TOPIC_URL = `https://ntfy.sh/${SYNC_ROOM_KEY}`;
-        const MQTT_TOPIC_STATE = `roadsense/adas/tiu2027/vault_state_v3`;
-        const MQTT_TOPIC_PING  = `roadsense/adas/tiu2027/vault_ping_v3`;
+        const CLOUD_STATE_TOPIC = "roadsense/adas/v2026_global/vault_state_v2";
+        const CLOUD_EVENT_TOPIC = "roadsense/adas/v2026_global/live_vote_v2";
         const MQTT_BROKERS = [
             "wss://broker.emqx.io:8084/mqtt",
-            "wss://broker.hivemq.com:8884/mqtt",
-            "wss://test.mosquitto.org:8081/mqtt"
+            "wss://broker.hivemq.com:8884/mqtt"
         ];
 
-        const CLIENT_INSTANCE_ID = "dev_" + Math.random().toString(36).substring(2, 10);
-        const announcedVoteEventKeys = new Set();
         let mqttClients = [];
-        let ntfyEventSource = null;
-        let isInitialCloudHydrationDone = false;
-        let lastNtfyPollUnixSec = 0;
+        let seenVoteEventIds = new Set();
         let localBroadcastChannel = null;
 
-        try {
-            if (typeof BroadcastChannel !== "undefined") {
-                localBroadcastChannel = new BroadcastChannel(SYNC_ROOM_KEY);
-                localBroadcastChannel.onmessage = (ev) => {
-                    if (ev.data && ev.data.type === "VAULT_STATE") {
-                        applyIncomingCloudState(ev.data.payload, false);
-                    }
-                };
-            }
-        } catch (e) {}
-
-        window.addEventListener("storage", (ev) => {
-            if (ev.key === "roadSense_globalVaultState_v3" && ev.newValue) {
-                try {
-                    const parsed = JSON.parse(ev.newValue);
-                    applyIncomingCloudState(parsed, false);
-                } catch (e) {}
-            }
-        });
-
-        function createDefaultGlobalState() {
-            return {
-                v: 3,
-                resetEpoch: 1761645000000,
-                updatedAt: 0,
-                senderId: CLIENT_INSTANCE_ID,
-                voteLedger: {},      // { voterId: memberName }
-                voteTimes: {},       // { voterId: timestampMs }
-                customVoters: {},    // { voterId: label }
-                customTimes: {},     // { voterId: timestampMs }
-                deletedVoters: {},   // { voterId: deletedTimestampMs }
-                userTickets: {},     // { voterId: { c: code, p: prizeRef, t: timestampMs } }
-                redeemKeys: {},      // { code: prizeRef }
-                testVotes: {},       // { memberName: count }
-                lastEvent: null      // { id: "epoch_voterId", voterId, targetName, ts }
-            };
+        function getResetEpoch() {
+            return parseInt(localStorage.getItem('roadSense_resetEpoch') || "0", 10);
         }
 
-        function loadGlobalState() {
-            const rawV3 = localStorage.getItem("roadSense_globalVaultState_v3");
-            if (rawV3) {
-                try {
-                    const parsed = JSON.parse(rawV3);
-                    const base = createDefaultGlobalState();
-                    return {
-                        ...base,
-                        ...parsed,
-                        voteLedger: parsed.voteLedger || {},
-                        voteTimes: parsed.voteTimes || {},
-                        customVoters: parsed.customVoters || {},
-                        customTimes: parsed.customTimes || {},
-                        deletedVoters: parsed.deletedVoters || {},
-                        userTickets: parsed.userTickets || {},
-                        redeemKeys: parsed.redeemKeys || {},
-                        testVotes: parsed.testVotes || {}
-                    };
-                } catch (e) {}
-            }
+        function setResetEpoch(epoch) {
+            localStorage.setItem('roadSense_resetEpoch', String(epoch));
+        }
 
-            // Migrate existing local data if present
-            const state = createDefaultGlobalState();
+        function getDeletedGuestTombs() {
             try {
-                const oldCustom = JSON.parse(localStorage.getItem("roadSense_customVoters") || "{}");
-                Object.entries(oldCustom).forEach(([id, label]) => {
-                    state.customVoters[id] = label;
-                    state.customTimes[id] = 1;
-                });
-
-                const oldLedger = JSON.parse(localStorage.getItem("roadSense_voteLedger") || "{}");
-                Object.entries(oldLedger).forEach(([id, target]) => {
-                    if (target && DEFAULT_VOTE_COUNTS.hasOwnProperty(target)) {
-                        state.voteLedger[id] = target;
-                        state.voteTimes[id] = 1;
-                    }
-                });
-
-                const oldTickets = JSON.parse(localStorage.getItem("roadSense_userTickets") || "{}");
-                Object.entries(oldTickets).forEach(([id, tk]) => {
-                    if (tk && tk.code && tk.prize) {
-                        const ref = prizeToRef(tk.prize);
-                        state.userTickets[id] = { c: tk.code, p: ref, t: 1 };
-                        state.redeemKeys[tk.code] = ref;
-                    }
-                });
-
-                const oldRedeem = JSON.parse(localStorage.getItem("roadSense_redeemKeys") || "{}");
-                Object.entries(oldRedeem).forEach(([code, prize]) => {
-                    state.redeemKeys[code] = prizeToRef(prize);
-                });
-
-                const oldTest = JSON.parse(localStorage.getItem("roadSense_testVotes") || "{}");
-                state.testVotes = { ...oldTest };
-            } catch (e) {}
-
-            persistGlobalStateLocally(state);
-            return state;
-        }
-
-        let globalVaultState = loadGlobalState();
-
-        // Mark any pre-existing local votes as already announced on startup
-        Object.keys(globalVaultState.voteLedger).forEach(voterId => {
-            announcedVoteEventKeys.add(`${globalVaultState.resetEpoch}_${voterId}`);
-        });
-
-        function isVoterDeletedInState(state, voterId) {
-            if (CORE_PROTECTED_VOTERS[voterId] || voterId === "0000") return false;
-            const delTs = state.deletedVoters?.[voterId] || 0;
-            const addTs = state.customTimes?.[voterId] || 0;
-            return delTs > 0 && delTs >= addTs;
-        }
-
-        function computeCountsFromLedger(ledger, deletedCheckState) {
-            const counts = { ...DEFAULT_VOTE_COUNTS };
-            Object.entries(ledger || {}).forEach(([voterId, targetName]) => {
-                if (!isVoterDeletedInState(deletedCheckState, voterId) && counts.hasOwnProperty(targetName)) {
-                    counts[targetName] += 1;
-                }
-            });
-            return counts;
-        }
-
-        function persistGlobalStateLocally(state) {
-            globalVaultState = state;
-            try {
-                localStorage.setItem("roadSense_globalVaultState_v3", JSON.stringify(state));
-
-                // Mirror to all original localStorage keys for 100% compatibility
-                const activeCustomVoters = {};
-                Object.entries(state.customVoters || {}).forEach(([id, label]) => {
-                    if (!isVoterDeletedInState(state, id)) {
-                        activeCustomVoters[id] = label;
-                    }
-                });
-                localStorage.setItem("roadSense_customVoters", JSON.stringify(activeCustomVoters));
-
-                const activeLedger = {};
-                Object.entries(state.voteLedger || {}).forEach(([id, target]) => {
-                    if (!isVoterDeletedInState(state, id)) {
-                        activeLedger[id] = target;
-                    }
-                });
-                localStorage.setItem("roadSense_voteLedger", JSON.stringify(activeLedger));
-
-                const usedIDs = Object.keys(activeLedger);
-                localStorage.setItem("roadSense_usedVoterIDs", JSON.stringify(usedIDs));
-
-                const officialCounts = computeCountsFromLedger(activeLedger, state);
-                localStorage.setItem("roadSense_voteCounts", JSON.stringify(officialCounts));
-
-                const expandedTickets = {};
-                Object.entries(state.userTickets || {}).forEach(([id, tk]) => {
-                    if (!isVoterDeletedInState(state, id) && tk && tk.c) {
-                        expandedTickets[id] = {
-                            code: tk.c,
-                            prize: refToPrize(tk.p)
-                        };
-                    }
-                });
-                localStorage.setItem("roadSense_userTickets", JSON.stringify(expandedTickets));
-
-                const expandedRedeem = {};
-                Object.entries(state.redeemKeys || {}).forEach(([code, ref]) => {
-                    expandedRedeem[code] = refToPrize(ref);
-                });
-                Object.values(expandedTickets).forEach(tk => {
-                    if (tk.code && tk.prize) expandedRedeem[tk.code] = tk.prize;
-                });
-                localStorage.setItem("roadSense_redeemKeys", JSON.stringify(expandedRedeem));
-
-                localStorage.setItem("roadSense_testVotes", JSON.stringify(state.testVotes || {}));
-            } catch (e) {}
-        }
-
-        function setCloudSyncStatusUI(isOnline, labelText = "LIVE SYNC") {
-            const dot = document.getElementById("cloudSyncDot");
-            const txt = document.getElementById("cloudSyncText");
-            if (dot) {
-                dot.className = isOnline
-                    ? "w-1.5 h-1.5 rounded-full bg-emerald-400"
-                    : "w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse";
-            }
-            if (txt) txt.innerText = labelText;
-        }
-
-        function broadcastGlobalState() {
-            globalVaultState.updatedAt = Date.now();
-            globalVaultState.senderId = CLIENT_INSTANCE_ID;
-            persistGlobalStateLocally(globalVaultState);
-
-            const serialized = JSON.stringify(globalVaultState);
-
-            // 1. BroadcastChannel (Same browser tabs)
-            try {
-                localBroadcastChannel?.postMessage({ type: "VAULT_STATE", payload: globalVaultState });
-            } catch (e) {}
-
-            // 2. Multi-Broker MQTT WSS with retain: true
-            mqttClients.forEach(client => {
-                try {
-                    if (client && client.connected) {
-                        client.publish(MQTT_TOPIC_STATE, serialized, { qos: 1, retain: true });
-                    }
-                } catch (e) {}
-            });
-
-            // 3. HTTPS Cloud Relay (ntfy.sh) - Works through strict firewalls & mobile carrier NAT
-            try {
-                fetch(NTFY_TOPIC_URL, {
-                    method: "POST",
-                    body: serialized,
-                    headers: { "Title": "RoadSenseVaultSync", "Priority": "default" }
-                }).then(r => {
-                    if (r.ok) setCloudSyncStatusUI(true, "LIVE SYNC");
-                }).catch(() => {});
-            } catch (e) {}
-
-            // 4. Optional Same-Origin FastAPI Backend Sync (if hosted on FastAPI server)
-            if (window.location.protocol.startsWith("http")) {
-                fetch("/api/roadsense/vault", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: serialized
-                }).catch(() => {});
+                const raw = localStorage.getItem('roadSense_deletedGuests');
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                return {};
             }
         }
 
-        function applyIncomingCloudState(incoming, isInitialHydration = false) {
-            if (!incoming || typeof incoming !== "object" || incoming.v !== 3) return;
-
-            const local = globalVaultState;
-            const incEpoch = Number(incoming.resetEpoch || 0);
-            const locEpoch = Number(local.resetEpoch || 0);
-
-            // CASE A: Incoming state has a NEWER Admin Reset Epoch -> Wipe stale local state immediately
-            if (incEpoch > locEpoch) {
-                const resetState = {
-                    ...createDefaultGlobalState(),
-                    ...incoming,
-                    voteLedger: { ...(incoming.voteLedger || {}) },
-                    voteTimes: { ...(incoming.voteTimes || {}) },
-                    customVoters: { ...(incoming.customVoters || {}) },
-                    customTimes: { ...(incoming.customTimes || {}) },
-                    deletedVoters: { ...(incoming.deletedVoters || {}) },
-                    userTickets: { ...(incoming.userTickets || {}) },
-                    redeemKeys: { ...(incoming.redeemKeys || {}) },
-                    testVotes: { ...(incoming.testVotes || {}) }
-                };
-
-                announcedVoteEventKeys.clear();
-                Object.keys(resetState.voteLedger).forEach(vid => {
-                    announcedVoteEventKeys.add(`${resetState.resetEpoch}_${vid}`);
-                });
-
-                singlePassVoteQueue = [];
-                currentWonCode = "";
-                localStorage.removeItem("roadSenseVotedMember");
-
-                persistGlobalStateLocally(resetState);
-                refreshAllUIComponentsAfterSync(null);
-                return;
-            }
-
-            // CASE B: Incoming state is from an OLDER epoch before our latest Admin Reset -> Push our newer state back
-            if (incEpoch < locEpoch) {
-                broadcastGlobalState();
-                return;
-            }
-
-            // CASE C: Same Epoch -> Perform deterministic CRDT merge
-            let stateChanged = false;
-            const merged = {
-                ...local,
-                resetEpoch: locEpoch,
-                updatedAt: Math.max(local.updatedAt || 0, incoming.updatedAt || 0),
-                voteLedger: { ...local.voteLedger },
-                voteTimes: { ...local.voteTimes },
-                customVoters: { ...local.customVoters },
-                customTimes: { ...local.customTimes },
-                deletedVoters: { ...local.deletedVoters },
-                userTickets: { ...local.userTickets },
-                redeemKeys: { ...local.redeemKeys },
-                testVotes: { ...local.testVotes }
-            };
-
-            // 1. Merge deletedVoters tombstones
-            Object.entries(incoming.deletedVoters || {}).forEach(([id, delTs]) => {
-                const curDel = merged.deletedVoters[id] || 0;
-                if (delTs > curDel) {
-                    merged.deletedVoters[id] = delTs;
-                    stateChanged = true;
-                }
-            });
-
-            // 2. Merge customVoters
-            Object.entries(incoming.customVoters || {}).forEach(([id, label]) => {
-                const incAddTs = incoming.customTimes?.[id] || 1;
-                const locAddTs = merged.customTimes?.[id] || 0;
-                if (incAddTs >= locAddTs && merged.customVoters[id] !== label) {
-                    merged.customVoters[id] = label;
-                    merged.customTimes[id] = incAddTs;
-                    stateChanged = true;
-                }
-            });
-
-            // Prune deleted custom voters
-            Object.keys(merged.customVoters).forEach(id => {
-                if (isVoterDeletedInState(merged, id)) {
-                    delete merged.customVoters[id];
-                    delete merged.voteLedger[id];
-                    delete merged.userTickets[id];
-                    singlePassVoteQueue = singlePassVoteQueue.filter(e => e.voterId !== id);
-                    stateChanged = true;
-                }
-            });
-
-            // 3. Merge voteLedger (First Vote per ID Wins; detect newly cast votes from other devices)
-            const newlyDiscoveredVotes = [];
-            Object.entries(incoming.voteLedger || {}).forEach(([voterId, targetName]) => {
-                if (isVoterDeletedInState(merged, voterId)) return;
-                if (!DEFAULT_VOTE_COUNTS.hasOwnProperty(targetName)) return;
-
-                const incVoteTs = incoming.voteTimes?.[voterId] || 1;
-                const locVoteTs = merged.voteTimes?.[voterId] || 0;
-                const eventKey = `${locEpoch}_${voterId}`;
-
-                if (!merged.voteLedger[voterId]) {
-                    merged.voteLedger[voterId] = targetName;
-                    merged.voteTimes[voterId] = incVoteTs;
-                    stateChanged = true;
-
-                    if (!announcedVoteEventKeys.has(eventKey)) {
-                        announcedVoteEventKeys.add(eventKey);
-                        newlyDiscoveredVotes.push({ voterId, targetName, ts: incVoteTs });
-                    }
-                } else if (incVoteTs > 0 && (locVoteTs === 0 || incVoteTs < locVoteTs) && merged.voteLedger[voterId] !== targetName) {
-                    merged.voteLedger[voterId] = targetName;
-                    merged.voteTimes[voterId] = incVoteTs;
-                    stateChanged = true;
-                }
-            });
-
-            // Also check incoming.lastEvent in case a vote event arrived
-            if (incoming.lastEvent && incoming.lastEvent.voterId && incoming.lastEvent.targetName) {
-                const ev = incoming.lastEvent;
-                const evKey = `${locEpoch}_${ev.voterId}`;
-                if (!isVoterDeletedInState(merged, ev.voterId) && !announcedVoteEventKeys.has(evKey)) {
-                    announcedVoteEventKeys.add(evKey);
-                    newlyDiscoveredVotes.push({ voterId: ev.voterId, targetName: ev.targetName, ts: ev.ts || Date.now() });
-                }
-            }
-
-            // 4. Merge userTickets (First Spin per ID Wins)
-            Object.entries(incoming.userTickets || {}).forEach(([voterId, tk]) => {
-                if (isVoterDeletedInState(merged, voterId) || !tk || !tk.c) return;
-                const locTk = merged.userTickets[voterId];
-                if (!locTk || ((tk.t || 1) < (locTk.t || Infinity) && tk.c !== locTk.c)) {
-                    merged.userTickets[voterId] = tk;
-                    merged.redeemKeys[tk.c] = tk.p;
-                    stateChanged = true;
-                }
-            });
-
-            // 5. Merge redeemKeys
-            Object.entries(incoming.redeemKeys || {}).forEach(([code, ref]) => {
-                if (!merged.redeemKeys[code]) {
-                    merged.redeemKeys[code] = ref;
-                    stateChanged = true;
-                }
-            });
-
-            // 6. Merge testVotes
-            Object.entries(incoming.testVotes || {}).forEach(([memberName, count]) => {
-                const cur = merged.testVotes[memberName] || 0;
-                if (count > cur) {
-                    merged.testVotes[memberName] = count;
-                    stateChanged = true;
-                }
-            });
-
-            if (stateChanged || newlyDiscoveredVotes.length > 0 || isInitialHydration) {
-                persistGlobalStateLocally(merged);
-
-                // Sort any newly discovered votes chronologically
-                newlyDiscoveredVotes.sort((a, b) => (a.ts || 0) - (b.ts || 0));
-
-                // If this is initial page load, only slide the most recent vote if it was cast within the last 30s;
-                // during active session, slide EVERY new vote cast by friends on other devices!
-                let votesToAnnounce = newlyDiscoveredVotes;
-                if (isInitialHydration && newlyDiscoveredVotes.length > 1) {
-                    const latest = newlyDiscoveredVotes[newlyDiscoveredVotes.length - 1];
-                    const isVeryRecent = (Date.now() - (latest.ts || 0)) < 45000;
-                    votesToAnnounce = isVeryRecent ? [latest] : [];
-                }
-
-                refreshAllUIComponentsAfterSync(votesToAnnounce);
-            }
+        function saveDeletedGuestTombs(map) {
+            localStorage.setItem('roadSense_deletedGuests', JSON.stringify(map));
         }
 
-        function refreshAllUIComponentsAfterSync(newVoteEventsArray) {
-            const ledger = getVoteLedger();
-            const usedIDs = getUsedVoterIDs();
-
-            // If a user is currently logged in on this device and their ID was just used on another device,
-            // immediately lock their poll buttons and sync their session state!
-            if (activeSessionVoterId && activeSessionVoterId !== "0000") {
-                const allVoters = getAllAuthorizedVoters();
-                if (!(activeSessionVoterId in allVoters)) {
-                    // Their guest ID was deleted by Admin
-                    switchVoterAccount();
-                } else {
-                    const votedTarget = ledger[activeSessionVoterId] || null;
-                    if (usedIDs.includes(activeSessionVoterId) && votedTarget) {
-                        const voterDisplay = getVoterDisplayName(activeSessionVoterId);
-                        unlockVaultState(votedTarget, true);
-                        const statusDiv = document.getElementById('voterIdStatus');
-                        if (statusDiv) {
-                            statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 block";
-                            statusDiv.innerText = `✅ ${voterDisplay}'s vote for ${votedTarget} is active & synced across all devices.`;
-                        }
-                    } else {
-                        lockVaultStateForNewVoter();
-                        renderPollCards(null);
-                    }
-                    syncLotteryAndRedeemForAccount();
-                }
-            } else {
-                renderPollCards(null);
-            }
-
-            if (activeSessionVoterId === "0000") {
-                renderAdminVoterRegistry();
-            }
-
-            renderLeaderboard();
-
-            if (Array.isArray(newVoteEventsArray) && newVoteEventsArray.length > 0) {
-                newVoteEventsArray.forEach(ev => {
-                    updateLiveNewsTicker({ voterId: ev.voterId, targetName: ev.targetName });
-                });
-            } else {
-                updateLiveNewsTicker(null);
-            }
-        }
-
-        async function pullCloudStateFromNtfy(isInitial = false) {
-            try {
-                const sinceParam = (!isInitial && lastNtfyPollUnixSec > 0)
-                    ? `${Math.max(1, lastNtfyPollUnixSec - 5)}`
-                    : "48h";
-                const res = await fetch(`${NTFY_TOPIC_URL}/json?poll=1&since=${sinceParam}`, { cache: "no-store" });
-                if (!res.ok) return;
-                setCloudSyncStatusUI(true, "LIVE SYNC");
-
-                const text = await res.text();
-                const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
-                let latestTimeSec = lastNtfyPollUnixSec;
-
-                for (const line of lines) {
-                    try {
-                        const wrapper = JSON.parse(line);
-                        if (wrapper.time && wrapper.time > latestTimeSec) {
-                            latestTimeSec = wrapper.time;
-                        }
-                        if (wrapper.event === "message" && wrapper.message) {
-                            const payload = JSON.parse(wrapper.message);
-                            applyIncomingCloudState(payload, isInitial);
-                        }
-                    } catch (e) {}
-                }
-                if (latestTimeSec > 0) lastNtfyPollUnixSec = latestTimeSec;
-            } catch (e) {}
-        }
-
-        function initRealTimeCloudSync() {
-            // 1. Pull cached cloud history from ntfy.sh immediately
-            pullCloudStateFromNtfy(true).finally(() => {
-                isInitialCloudHydrationDone = true;
-            });
-
-            // 2. Open real-time SSE stream from ntfy.sh
-            try {
-                if (typeof EventSource !== "undefined") {
-                    ntfyEventSource = new EventSource(`${NTFY_TOPIC_URL}/sse`);
-                    ntfyEventSource.onopen = () => setCloudSyncStatusUI(true, "LIVE SYNC");
-                    ntfyEventSource.onmessage = (ev) => {
-                        try {
-                            const wrapper = JSON.parse(ev.data);
-                            if (wrapper.time && wrapper.time > lastNtfyPollUnixSec) {
-                                lastNtfyPollUnixSec = wrapper.time;
-                            }
-                            if (wrapper.event === "message" && wrapper.message) {
-                                const state = JSON.parse(wrapper.message);
-                                applyIncomingCloudState(state, false);
-                            }
-                        } catch (e) {}
-                    };
-                }
-            } catch (e) {}
-
-            // 3. Connect to redundant MQTT over WSS brokers (Retained State + Sub-50ms Pub/Sub)
-            if (typeof mqtt !== "undefined") {
-                MQTT_BROKERS.forEach(brokerUrl => {
-                    try {
-                        const client = mqtt.connect(brokerUrl, {
-                            clientId: "rs_adas_" + Math.random().toString(16).substring(2, 10),
-                            clean: true,
-                            connectTimeout: 5000,
-                            reconnectPeriod: 4000
-                        });
-
-                        client.on("connect", () => {
-                            setCloudSyncStatusUI(true, "LIVE SYNC");
-                            client.subscribe([MQTT_TOPIC_STATE, MQTT_TOPIC_PING], { qos: 1 });
-                            client.publish(MQTT_TOPIC_PING, CLIENT_INSTANCE_ID, { qos: 0, retain: false });
-                        });
-
-                        client.on("message", (topic, messageBuffer) => {
-                            try {
-                                const msgStr = messageBuffer.toString();
-                                if (topic === MQTT_TOPIC_STATE) {
-                                    const incoming = JSON.parse(msgStr);
-                                    applyIncomingCloudState(incoming, !isInitialCloudHydrationDone);
-                                    isInitialCloudHydrationDone = true;
-                                } else if (topic === MQTT_TOPIC_PING && msgStr !== CLIENT_INSTANCE_ID) {
-                                    // Another device just opened the page; if we have votes or custom IDs, share state
-                                    if (Object.keys(globalVaultState.voteLedger).length > 0 || Object.keys(globalVaultState.customVoters).length > 0) {
-                                        client.publish(MQTT_TOPIC_STATE, JSON.stringify(globalVaultState), { qos: 1, retain: true });
-                                    }
-                                }
-                            } catch (e) {}
-                        });
-
-                        mqttClients.push(client);
-                    } catch (e) {}
-                });
-            }
-
-            // 4. Optional FastAPI backend polling if hosted on FastAPI
-            if (window.location.protocol.startsWith("http")) {
-                fetch("/api/roadsense/vault", { cache: "no-store" })
-                    .then(r => r.ok ? r.json() : null)
-                    .then(data => { if (data) applyIncomingCloudState(data, true); })
-                    .catch(() => {});
-            }
-
-            // 5. Continuous 3.5-second HTTPS Delta Poll Fallback (guarantees sync on strict mobile networks)
-            setInterval(() => {
-                if (!document.hidden) {
-                    pullCloudStateFromNtfy(false);
-                }
-            }, 3500);
-        }
-
-        // =====================================================================
-        // 6. STORAGE ACCESSORS (BACKED BY SYNCED GLOBAL CRDT STATE)
-        // =====================================================================
         function getCustomGuestVoters() {
-            const active = {};
-            Object.entries(globalVaultState.customVoters || {}).forEach(([id, label]) => {
-                if (!isVoterDeletedInState(globalVaultState, id)) {
-                    active[id] = label;
-                }
-            });
-            return active;
+            try {
+                const raw = localStorage.getItem('roadSense_customVoters');
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                return {};
+            }
         }
 
         function saveCustomGuestVoters(map) {
-            const now = Date.now();
-            Object.entries(map).forEach(([id, label]) => {
-                globalVaultState.customVoters[id] = label;
-                globalVaultState.customTimes[id] = now;
-            });
-            persistGlobalStateLocally(globalVaultState);
-            broadcastGlobalState();
+            localStorage.setItem('roadSense_customVoters', JSON.stringify(map));
         }
 
         function getAllAuthorizedVoters() {
@@ -1778,95 +1075,324 @@
         }
 
         function getVoteLedger() {
-            const active = {};
-            Object.entries(globalVaultState.voteLedger || {}).forEach(([id, target]) => {
-                if (!isVoterDeletedInState(globalVaultState, id)) {
-                    active[id] = target;
-                }
-            });
-            return active;
+            try {
+                const raw = localStorage.getItem('roadSense_voteLedger');
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                return {};
+            }
         }
 
         function saveVoteLedger(ledger) {
-            globalVaultState.voteLedger = { ...ledger };
-            persistGlobalStateLocally(globalVaultState);
+            localStorage.setItem('roadSense_voteLedger', JSON.stringify(ledger));
+            recomputeVoteCountsAndUsedIdsFromLedger(ledger);
         }
 
-        function getUsedVoterIDs() {
-            return Object.keys(getVoteLedger());
-        }
-
-        function saveUsedVoterIDs(ids) {
-            localStorage.setItem('roadSense_usedVoterIDs', JSON.stringify(ids));
+        // Derives officialVoteCounts & usedVoterIDs directly from voteLedger so they NEVER desync across devices
+        function recomputeVoteCountsAndUsedIdsFromLedger(ledger) {
+            const counts = { ...DEFAULT_VOTE_COUNTS };
+            const usedIds = [];
+            Object.entries(ledger || {}).forEach(([voterId, candidateName]) => {
+                if (voterId && voterId !== "0000" && candidateName && (candidateName in counts)) {
+                    counts[candidateName] = (counts[candidateName] || 0) + 1;
+                    if (!usedIds.includes(voterId)) {
+                        usedIds.push(voterId);
+                    }
+                }
+            });
+            localStorage.setItem('roadSense_voteCounts', JSON.stringify(counts));
+            localStorage.setItem('roadSense_usedVoterIDs', JSON.stringify(usedIds));
+            return { counts, usedIds };
         }
 
         function getOfficialVoteCounts() {
-            return computeCountsFromLedger(getVoteLedger(), globalVaultState);
+            const ledger = getVoteLedger();
+            return recomputeVoteCountsAndUsedIdsFromLedger(ledger).counts;
         }
 
-        function saveOfficialVoteCounts(counts) {
-            localStorage.setItem('roadSense_voteCounts', JSON.stringify(counts));
+        function getUsedVoterIDs() {
+            const ledger = getVoteLedger();
+            return recomputeVoteCountsAndUsedIdsFromLedger(ledger).usedIds;
         }
 
         function getTestVoteCounts() {
-            return { ...(globalVaultState.testVotes || {}) };
+            try {
+                const stored = localStorage.getItem('roadSense_testVotes');
+                return stored ? JSON.parse(stored) : {};
+            } catch (e) {
+                return {};
+            }
         }
 
         function saveTestVoteCounts(tv) {
-            globalVaultState.testVotes = { ...tv };
-            persistGlobalStateLocally(globalVaultState);
-            broadcastGlobalState();
+            localStorage.setItem('roadSense_testVotes', JSON.stringify(tv));
         }
 
         function getUserLotteryTickets() {
-            const expanded = {};
-            Object.entries(globalVaultState.userTickets || {}).forEach(([id, tk]) => {
-                if (!isVoterDeletedInState(globalVaultState, id) && tk && tk.c) {
-                    expanded[id] = {
-                        code: tk.c,
-                        prize: refToPrize(tk.p)
-                    };
-                }
-            });
-            return expanded;
+            try {
+                const raw = localStorage.getItem('roadSense_userTickets');
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                return {};
+            }
         }
 
         function saveUserLotteryTickets(map) {
-            const now = Date.now();
-            Object.entries(map).forEach(([id, tk]) => {
-                if (tk && tk.code && tk.prize) {
-                    const ref = prizeToRef(tk.prize);
-                    if (!globalVaultState.userTickets[id]) {
-                        globalVaultState.userTickets[id] = { c: tk.code, p: ref, t: now };
-                    }
-                    globalVaultState.redeemKeys[tk.code] = ref;
-                }
-            });
-            persistGlobalStateLocally(globalVaultState);
-            broadcastGlobalState();
+            localStorage.setItem('roadSense_userTickets', JSON.stringify(map));
         }
 
         function getStoredRedeemKeys() {
-            const expanded = {};
-            Object.entries(globalVaultState.redeemKeys || {}).forEach(([code, ref]) => {
-                expanded[code] = refToPrize(ref);
-            });
-            Object.values(getUserLotteryTickets()).forEach(tk => {
-                if (tk.code && tk.prize) expanded[tk.code] = tk.prize;
-            });
-            return expanded;
+            try {
+                const raw = localStorage.getItem('roadSense_redeemKeys');
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                return {};
+            }
         }
 
         function saveStoredRedeemKeys(map) {
-            Object.entries(map).forEach(([code, prize]) => {
-                globalVaultState.redeemKeys[code] = prizeToRef(prize);
+            localStorage.setItem('roadSense_redeemKeys', JSON.stringify(map));
+        }
+
+        // Build complete snapshot for cloud sync
+        function buildLocalCloudSnapshot(lastVoteEvent = null) {
+            return {
+                resetEpoch: getResetEpoch(),
+                updatedAt: Date.now(),
+                voteLedger: getVoteLedger(),
+                customVoters: getCustomGuestVoters(),
+                deletedGuests: getDeletedGuestTombs(),
+                userTickets: getUserLotteryTickets(),
+                redeemKeys: getStoredRedeemKeys(),
+                testVotes: getTestVoteCounts(),
+                lastVoteEvent: lastVoteEvent
+            };
+        }
+
+        // Publish state to all connected cloud brokers (with retain: true) & BroadcastChannel
+        function broadcastCloudState(lastVoteEvent = null, forceResetOverwrite = false) {
+            const snapshot = buildLocalCloudSnapshot(lastVoteEvent);
+            snapshot.forceReset = Boolean(forceResetOverwrite);
+            const payloadStr = JSON.stringify(snapshot);
+
+            mqttClients.forEach(client => {
+                if (client && client.connected) {
+                    try {
+                        client.publish(CLOUD_STATE_TOPIC, payloadStr, { qos: 1, retain: true });
+                        if (lastVoteEvent) {
+                            client.publish(CLOUD_EVENT_TOPIC, JSON.stringify(lastVoteEvent), { qos: 1, retain: false });
+                        }
+                    } catch (e) {}
+                }
             });
-            persistGlobalStateLocally(globalVaultState);
-            broadcastGlobalState();
+
+            if (localBroadcastChannel) {
+                try {
+                    localBroadcastChannel.postMessage({ type: 'STATE_SYNC', snapshot });
+                } catch (e) {}
+            }
+        }
+
+        // Merge incoming cloud state without losing concurrent votes from any device
+        function applyIncomingCloudSnapshot(incoming) {
+            if (!incoming || typeof incoming !== 'object') return;
+
+            const localEpoch = getResetEpoch();
+            const remoteEpoch = parseInt(incoming.resetEpoch || "0", 10);
+
+            // If remote state is from BEFORE our last Admin Reset, push our newer reset state back
+            if (remoteEpoch < localEpoch) {
+                broadcastCloudState(null, true);
+                return;
+            }
+
+            let stateChanged = false;
+            let localHasExtraData = false;
+
+            // If an Admin on another device triggered a Reset (remoteEpoch > localEpoch)
+            if (remoteEpoch > localEpoch) {
+                setResetEpoch(remoteEpoch);
+                saveDeletedGuestTombs(incoming.deletedGuests || {});
+                saveCustomGuestVoters(incoming.customVoters || {});
+                saveVoteLedger(incoming.voteLedger || {});
+                saveUserLotteryTickets(incoming.userTickets || {});
+                saveStoredRedeemKeys(incoming.redeemKeys || {});
+                saveTestVoteCounts(incoming.testVotes || {});
+                singlePassVoteQueue = [];
+                currentWonCode = "";
+                stateChanged = true;
+            } else {
+                // Same epoch: conflict-free union merge!
+                const mergedTombs = { ...getDeletedGuestTombs(), ...(incoming.deletedGuests || {}) };
+                saveDeletedGuestTombs(mergedTombs);
+
+                const localCustom = getCustomGuestVoters();
+                const remoteCustom = incoming.customVoters || {};
+                const mergedCustom = { ...localCustom, ...remoteCustom };
+                Object.keys(mergedTombs).forEach(delId => {
+                    delete mergedCustom[delId];
+                });
+                if (JSON.stringify(mergedCustom) !== JSON.stringify(localCustom)) {
+                    saveCustomGuestVoters(mergedCustom);
+                    stateChanged = true;
+                }
+                if (Object.keys(mergedCustom).length > Object.keys(remoteCustom).length) {
+                    localHasExtraData = true;
+                }
+
+                // Merge voteLedger (excluding deleted guest IDs)
+                const localLedger = getVoteLedger();
+                const remoteLedger = incoming.voteLedger || {};
+                const mergedLedger = { ...remoteLedger, ...localLedger };
+                Object.keys(mergedTombs).forEach(delId => {
+                    delete mergedLedger[delId];
+                });
+                if (JSON.stringify(mergedLedger) !== JSON.stringify(localLedger)) {
+                    saveVoteLedger(mergedLedger);
+                    stateChanged = true;
+                }
+                if (Object.keys(mergedLedger).length > Object.keys(remoteLedger).length) {
+                    localHasExtraData = true;
+                }
+
+                // Merge userTickets
+                const localTickets = getUserLotteryTickets();
+                const remoteTickets = incoming.userTickets || {};
+                const mergedTickets = { ...remoteTickets, ...localTickets };
+                Object.keys(mergedTombs).forEach(delId => {
+                    delete mergedTickets[delId];
+                });
+                if (JSON.stringify(mergedTickets) !== JSON.stringify(localTickets)) {
+                    saveUserLotteryTickets(mergedTickets);
+                    stateChanged = true;
+                }
+                if (Object.keys(mergedTickets).length > Object.keys(remoteTickets).length) {
+                    localHasExtraData = true;
+                }
+
+                // Merge 10-digit redeemKeys so any key generated on any device unlocks on any device
+                const localKeys = getStoredRedeemKeys();
+                const remoteKeys = incoming.redeemKeys || {};
+                const mergedKeys = { ...remoteKeys, ...localKeys };
+                if (JSON.stringify(mergedKeys) !== JSON.stringify(localKeys)) {
+                    saveStoredRedeemKeys(mergedKeys);
+                    stateChanged = true;
+                }
+                if (Object.keys(mergedKeys).length > Object.keys(remoteKeys).length) {
+                    localHasExtraData = true;
+                }
+
+                // Merge testVotes (take max per candidate)
+                const localTest = getTestVoteCounts();
+                const remoteTest = incoming.testVotes || {};
+                const mergedTest = { ...localTest };
+                Object.entries(remoteTest).forEach(([k, v]) => {
+                    mergedTest[k] = Math.max(mergedTest[k] || 0, v || 0);
+                });
+                if (JSON.stringify(mergedTest) !== JSON.stringify(localTest)) {
+                    saveTestVoteCounts(mergedTest);
+                    stateChanged = true;
+                }
+            }
+
+            // Check if there is a recent live vote event to glide across the top ticker bar
+            let incomingVoteEvt = incoming.lastVoteEvent;
+            if (incomingVoteEvt && incomingVoteEvt.eventId && !seenVoteEventIds.has(incomingVoteEvt.eventId)) {
+                seenVoteEventIds.add(incomingVoteEvt.eventId);
+                const ageMs = Date.now() - (incomingVoteEvt.timestamp || 0);
+                if (ageMs < 90000) {
+                    updateLiveNewsTicker({
+                        voterId: incomingVoteEvt.voterId,
+                        targetName: incomingVoteEvt.targetName
+                    });
+                }
+            }
+
+            if (stateChanged) {
+                refreshAllUiAfterCloudSync();
+            }
+
+            // If our device had offline votes that the cloud broker didn't have yet, push the union back
+            if (localHasExtraData) {
+                broadcastCloudState(null, false);
+            }
+        }
+
+        function refreshAllUiAfterCloudSync() {
+            const ledger = getVoteLedger();
+            const currentVotedTarget = (activeSessionVoterId && activeSessionVoterId !== "0000")
+                ? (ledger[activeSessionVoterId] || null)
+                : null;
+
+            // If the currently logged-in user voted on another device, immediately unlock their Vault & lock their vote button
+            if (activeSessionVoterId && activeSessionVoterId !== "0000") {
+                if (currentVotedTarget) {
+                    unlockVaultState(currentVotedTarget, true);
+                } else {
+                    lockVaultStateForNewVoter();
+                }
+            }
+
+            renderPollCards(currentVotedTarget);
+            renderLeaderboard();
+            renderAdminVoterRegistry();
+            syncLotteryAndRedeemForAccount();
+            updateLiveNewsTicker();
+        }
+
+        function initCloudSyncEngine() {
+            // 1. Same-device cross-tab sync
+            try {
+                if (window.BroadcastChannel) {
+                    localBroadcastChannel = new BroadcastChannel('roadsense_vault_sync_v2');
+                    localBroadcastChannel.onmessage = (ev) => {
+                        if (ev.data && ev.data.type === 'STATE_SYNC') {
+                            applyIncomingCloudSnapshot(ev.data.snapshot);
+                        }
+                    };
+                }
+            } catch (e) {}
+
+            // 2. Cross-device global MQTT over WebSockets sync (Dual-broker redundancy)
+            if (typeof mqtt === 'undefined') return;
+
+            MQTT_BROKERS.forEach((brokerUrl) => {
+                try {
+                    const client = mqtt.connect(brokerUrl, {
+                        clientId: 'rs_adas_' + Math.random().toString(16).substring(2, 10),
+                        clean: true,
+                        connectTimeout: 5000,
+                        reconnectPeriod: 3000
+                    });
+
+                    client.on('connect', () => {
+                        client.subscribe([CLOUD_STATE_TOPIC, CLOUD_EVENT_TOPIC], { qos: 1 });
+                    });
+
+                    client.on('message', (topic, messageBuffer) => {
+                        try {
+                            const data = JSON.parse(messageBuffer.toString());
+                            if (topic === CLOUD_STATE_TOPIC) {
+                                applyIncomingCloudSnapshot(data);
+                            } else if (topic === CLOUD_EVENT_TOPIC && data && data.eventId) {
+                                if (!seenVoteEventIds.has(data.eventId)) {
+                                    seenVoteEventIds.add(data.eventId);
+                                    updateLiveNewsTicker({
+                                        voterId: data.voterId,
+                                        targetName: data.targetName
+                                    });
+                                }
+                            }
+                        } catch (e) {}
+                    });
+
+                    mqttClients.push(client);
+                } catch (err) {}
+            });
         }
 
         // =====================================================================
-        // 7. DETERMINISTIC RAF SIDE-SCROLLING LIVE TICKER ENGINE
+        // 5. DETERMINISTIC RAF SIDE-SCROLLING LIVE TICKER ENGINE
         // =====================================================================
         let singlePassVoteQueue = [];
         let tickerRafId = null;
@@ -1875,7 +1401,6 @@
         let tickerTargetEndX = 0;
         let tickerIsPausedOnHover = false;
         let tickerCurrentMode = null;
-        let lastRenderedRankingSignature = "";
 
         function buildRankingTickerHtml() {
             const counts = getOfficialVoteCounts();
@@ -1916,7 +1441,6 @@
             if (!rankingHtml && singlePassVoteQueue.length === 0) {
                 tickerBar.classList.add('hidden');
                 tickerCurrentMode = null;
-                lastRenderedRankingSignature = "";
                 runnerEl.innerHTML = "";
                 return;
             }
@@ -1934,7 +1458,6 @@
                 runnerEl.innerHTML = `<span class="text-emerald-300 font-bold">${voterDisplay}</span> <span class="text-gray-400">voted for</span> <span class="text-white font-bold underline decoration-emerald-500/60 underline-offset-4">${voteEvent.targetName}</span>`;
             } else {
                 tickerCurrentMode = 'ranking';
-                lastRenderedRankingSignature = rankingHtml;
                 badgeEl.className = "px-2.5 py-0.5 text-[10px] mono-num font-extrabold uppercase bg-amber-400 text-[#1a1202] rounded-md shrink-0 flex items-center gap-1.5 shadow-sm transition-colors duration-300";
                 badgeTextEl.innerText = "🏆 LEADERBOARD";
 
@@ -1978,48 +1501,22 @@
         liveFeedViewportEl?.addEventListener('mouseleave', () => { tickerIsPausedOnHover = false; });
 
         function updateLiveNewsTicker(newlyCastVoteObj = null) {
-            if (newlyCastVoteObj && newlyCastVoteObj.voterId && newlyCastVoteObj.targetName) {
+            if (newlyCastVoteObj) {
                 singlePassVoteQueue.push({
                     voterId: newlyCastVoteObj.voterId,
                     targetName: newlyCastVoteObj.targetName
                 });
 
-                // If already sliding a single-pass vote, let it finish and it will automatically dequeue next
                 if (tickerCurrentMode === 'vote' && tickerRafId) {
                     return;
                 }
-                startNextTickerPass();
-                return;
-            }
-
-            // State refresh without a new vote event:
-            // Do not interrupt an active vote announcement pass
-            if (tickerCurrentMode === 'vote' && tickerRafId) {
-                return;
-            }
-
-            const latestRankingHtml = buildRankingTickerHtml();
-
-            // If currently sliding rankings and rankings haven't emptied, update in-place without resetting scroll position!
-            if (tickerCurrentMode === 'ranking' && tickerRafId) {
-                if (!latestRankingHtml) {
-                    startNextTickerPass();
-                } else if (latestRankingHtml !== lastRenderedRankingSignature) {
-                    lastRenderedRankingSignature = latestRankingHtml;
-                    const runnerEl = document.getElementById('liveFeedRunner');
-                    if (runnerEl) {
-                        runnerEl.innerHTML = latestRankingHtml;
-                        tickerTargetEndX = -(runnerEl.scrollWidth || 350) - 20;
-                    }
-                }
-                return;
             }
 
             startNextTickerPass();
         }
 
         // =====================================================================
-        // 8. INITIALIZATION & SUB-PIXEL SMOOTH AUTO-SCROLL ENGINE
+        // 6. INITIALIZATION & SUB-PIXEL SMOOTH AUTO-SCROLL ENGINE
         // =====================================================================
         function shuffleArray(arr) {
             const copy = [...arr];
@@ -2032,6 +1529,9 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             crewShuffledList = shuffleArray(CREW_MEMBERS);
+
+            // Initialize Real-Time Cross-Device Sync
+            initCloudSyncEngine();
 
             const savedId = localStorage.getItem('roadSenseVoterID');
             const allVoters = getAllAuthorizedVoters();
@@ -2046,7 +1546,6 @@
 
             renderLeaderboard();
             updateLiveNewsTicker();
-            initRealTimeCloudSync();
 
             creditsScrollViewport.scrollTop = 0;
 
@@ -2183,7 +1682,7 @@
         creditsScrollViewport.addEventListener('touchmove', () => stopAutoRoll(), { passive: true });
 
         // =====================================================================
-        // 9. VOTER ID LOGIN, ACCOUNT SWITCHING & PER-ACCOUNT LOTTERY SYNC
+        // 7. VOTER ID LOGIN, ACCOUNT SWITCHING & PER-ACCOUNT LOTTERY SYNC
         // =====================================================================
         function handleVoterIdInputChange() {
             document.getElementById('voterIdStatus').classList.add('hidden');
@@ -2303,7 +1802,7 @@
             }
         }
 
-        async function validateVoterId() {
+        function validateVoterId() {
             const input = document.getElementById('voterIdInput');
             const statusDiv = document.getElementById('voterIdStatus');
             const id = (input.value || "").trim().toUpperCase();
@@ -2313,11 +1812,6 @@
                 statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-red-950/80 border border-red-500/50 text-red-300 block";
                 statusDiv.innerText = "❌ Please enter a valid 4-digit Voter ID (XXXX).";
                 return false;
-            }
-
-            if (!isInitialCloudHydrationDone) {
-                await Promise.race([pullCloudStateFromNtfy(true), new Promise(r => setTimeout(r, 900))]);
-                isInitialCloudHydrationDone = true;
             }
 
             const allVoters = getAllAuthorizedVoters();
@@ -2370,13 +1864,12 @@
             loggedInLabel.innerText = voterDisplay;
 
             const ledger = getVoteLedger();
-            const usedIDs = getUsedVoterIDs();
             const alreadyVotedTarget = ledger[id] || null;
 
-            if (usedIDs.includes(id) && alreadyVotedTarget) {
+            if (alreadyVotedTarget) {
                 unlockVaultState(alreadyVotedTarget, isSilentRestore);
                 statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 block";
-                statusDiv.innerText = `✅ Welcome back, ${voterDisplay}! Your vote for ${alreadyVotedTarget} is recorded (1 Vote Used).`;
+                statusDiv.innerText = `✅ Welcome back, ${voterDisplay}! Your vote for ${alreadyVotedTarget} is synced across all devices.`;
             } else {
                 lockVaultStateForNewVoter();
                 statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 block";
@@ -2433,18 +1926,18 @@
         }
 
         // =====================================================================
-        // 10. POLL RENDERING & VOTE SUBMISSION (1 VOTE PER ID; ∞ FOR 0000)
+        // 8. POLL RENDERING & VOTE SUBMISSION (SYNCED ACROSS ALL DEVICES)
         // =====================================================================
         function renderPollCards(votedName = null) {
             const allVoters = getAllAuthorizedVoters();
             const currentId = activeSessionVoterId || (document.getElementById('voterIdInput')?.value || "").trim().toUpperCase();
             const currentOwner = allVoters[currentId] || null;
             const ledger = getVoteLedger();
-            const usedIDs = getUsedVoterIDs();
 
             const isAdmin = (currentId === "0000");
-            const hasThisUserAlreadyVoted = (!isAdmin && currentId && usedIDs.includes(currentId));
-            const effectiveVoted = (!isAdmin && (votedName || (currentId && ledger[currentId]))) || null;
+            const recordedTarget = (!isAdmin && currentId) ? (ledger[currentId] || null) : null;
+            const hasThisUserAlreadyVoted = Boolean(recordedTarget);
+            const effectiveVoted = (!isAdmin && (votedName || recordedTarget)) || null;
 
             document.getElementById('memberPollGrid').innerHTML = crewShuffledList.map(m => {
                 const isThisVoted = (effectiveVoted === m.name);
@@ -2494,7 +1987,7 @@
             }).join('');
         }
 
-        async function submitMemberVote(targetName) {
+        function submitMemberVote(targetName) {
             const typedId = (document.getElementById('voterIdInput')?.value || "").trim().toUpperCase();
             const id = activeSessionVoterId || typedId;
             const statusDiv = document.getElementById('voterIdStatus');
@@ -2505,12 +1998,6 @@
                 statusDiv.innerText = "❌ Please enter and login with your 4-digit Voter ID (XXXX) in Step 1 first.";
                 document.getElementById('voterIdInput')?.focus();
                 return;
-            }
-
-            // Ensure latest cloud state is synced before validating vote
-            if (!isInitialCloudHydrationDone) {
-                await Promise.race([pullCloudStateFromNtfy(true), new Promise(r => setTimeout(r, 900))]);
-                isInitialCloudHydrationDone = true;
             }
 
             if (!activeSessionVoterId) {
@@ -2536,6 +2023,7 @@
                 statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-sky-950/80 border border-sky-500/50 text-sky-300 block";
                 statusDiv.innerText = `🧪 Admin 0000 Vote #${testVotes[targetName]} registered for ${targetName}! (Unlimited voting & RNG active).`;
                 renderLeaderboard();
+                broadcastCloudState(null, false);
                 return;
             }
 
@@ -2558,48 +2046,43 @@
                 return;
             }
 
-            // CHECK ONE VOTE PER ID ACROSS ALL DEVICES
-            const usedIDs = getUsedVoterIDs();
-            const currentLedger = getVoteLedger();
-            if (usedIDs.includes(id) || currentLedger[id]) {
+            // CHECK GLOBAL SYNCED LEDGER (BLOCKS VOTING IF ALREADY VOTED ON ANY DEVICE)
+            const ledger = getVoteLedger();
+            if (ledger[id]) {
                 playUiSound('error');
-                const existingChoice = currentLedger[id];
-                unlockVaultState(existingChoice, true);
-                syncLotteryAndRedeemForAccount();
+                unlockVaultState(ledger[id], true);
+                renderPollCards(ledger[id]);
                 statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-amber-950/80 border border-amber-500/50 text-amber-300 block";
-                statusDiv.innerText = `⚠️ ${voterDisplay} has already voted for ${existingChoice} on another session! Duplicate voting is blocked.`;
+                statusDiv.innerText = `⚠️ ${voterDisplay} has already voted for ${ledger[id]}! Use 'Switch Account' to log in with a different ID.`;
                 return;
             }
 
-            // RECORD OFFICIAL VOTE IN GLOBAL STATE & BROADCAST TO ALL DEVICES
+            // RECORD OFFICIAL VOTE & BROADCAST TO ALL DEVICES
             playUiSound('vote');
-            const nowTs = Date.now();
-            const eventKey = `${globalVaultState.resetEpoch}_${id}`;
-            announcedVoteEventKeys.add(eventKey);
-
-            globalVaultState.voteLedger[id] = targetName;
-            globalVaultState.voteTimes[id] = nowTs;
-            globalVaultState.lastEvent = {
-                id: eventKey,
-                voterId: id,
-                targetName: targetName,
-                ts: nowTs
-            };
+            ledger[id] = targetName;
+            saveVoteLedger(ledger);
 
             localStorage.setItem('roadSenseVotedMember', targetName);
             localStorage.setItem('roadSenseVoterID', id);
-
-            broadcastGlobalState();
 
             unlockVaultState(targetName, false);
             syncLotteryAndRedeemForAccount();
 
             statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 block";
-            statusDiv.innerText = `🎉 ${voterDisplay} voted for ${targetName}! Live Leaderboard synced & RNG Vault unlocked.`;
+            statusDiv.innerText = `🎉 ${voterDisplay} voted for ${targetName}! Broadcasted live to all devices & RNG Vault unlocked.`;
+
+            const voteEvent = {
+                eventId: `evt_${Date.now()}_${id}_${Math.random().toString(36).substring(2, 6)}`,
+                voterId: id,
+                targetName: targetName,
+                timestamp: Date.now()
+            };
+            seenVoteEventIds.add(voteEvent.eventId);
 
             renderLeaderboard();
             renderAdminVoterRegistry();
             updateLiveNewsTicker({ voterId: id, targetName: targetName });
+            broadcastCloudState(voteEvent, false);
         }
 
         function unlockVaultState(name, isInitialLoad = false) {
@@ -2614,8 +2097,8 @@
 
             document.getElementById('lotteryLockedCard').classList.add('hidden');
             document.getElementById('lotteryUnlockedContent').classList.remove('hidden');
-            document.getElementById('redeemLockedCard').classList.add('hidden');
-            document.getElementById('redeemUnlockedContent').classList.remove('hidden');
+            document.getElementById('redeemLockedCard').classList.remove('hidden');
+            document.getElementById('redeemUnlockedContent').classList.add('hidden');
 
             document.getElementById('chosenMemberSpan').innerText = name;
             const banner = document.getElementById('voteConfirmedBanner');
@@ -2627,7 +2110,7 @@
         }
 
         // =====================================================================
-        // 11. STREAMLINED ADMIN (0000) CONTROLS (GLOBAL CROSS-DEVICE SYNCED)
+        // 9. STREAMLINED ADMIN (0000) CONTROLS (SYNCED ACROSS ALL DEVICES)
         // =====================================================================
         function renderAdminVoterRegistry() {
             const listEl = document.getElementById('adminVoterRegistryList');
@@ -2635,7 +2118,6 @@
             if (!listEl) return;
 
             const customVoters = getCustomGuestVoters();
-            const usedIDs = getUsedVoterIDs();
             const ledger = getVoteLedger();
             const userTickets = getUserLotteryTickets();
 
@@ -2650,8 +2132,9 @@
             if (countEl) countEl.innerText = `${coreEntries.length} Core Protected • ${guestEntries.length} Added Guest IDs`;
 
             listEl.innerHTML = allEntries.map(entry => {
-                const hasUsed = usedIDs.includes(entry.id);
-                const votedFor = ledger[entry.id] ? ` &rarr; ${ledger[entry.id]}` : "";
+                const votedCandidate = ledger[entry.id] || null;
+                const hasUsed = Boolean(votedCandidate);
+                const votedFor = votedCandidate ? ` &rarr; ${votedCandidate}` : "";
                 const hasTicket = Boolean(userTickets[entry.id]);
 
                 const statusBadge = hasUsed
@@ -2706,18 +2189,22 @@
                 return;
             }
 
-            const now = Date.now();
-            globalVaultState.customVoters[rawId] = label;
-            globalVaultState.customTimes[rawId] = now;
-            delete globalVaultState.deletedVoters[rawId];
+            const tombs = getDeletedGuestTombs();
+            if (tombs[rawId]) {
+                delete tombs[rawId];
+                saveDeletedGuestTombs(tombs);
+            }
 
-            broadcastGlobalState();
+            const customVoters = getCustomGuestVoters();
+            customVoters[rawId] = label;
+            saveCustomGuestVoters(customVoters);
 
             playUiSound('login');
             idInput.value = "";
             labelInput.value = "";
             renderAdminVoterRegistry();
             updateLiveNewsTicker();
+            broadcastCloudState(null, false);
         }
 
         function adminDeleteVoterId(targetId) {
@@ -2730,63 +2217,58 @@
             const customVoters = getCustomGuestVoters();
             if (!(targetId in customVoters)) return;
 
-            const now = Date.now();
-            globalVaultState.deletedVoters[targetId] = now;
-            delete globalVaultState.customVoters[targetId];
-            delete globalVaultState.voteLedger[targetId];
-            delete globalVaultState.voteTimes[targetId];
-            delete globalVaultState.userTickets[targetId];
+            const tombs = getDeletedGuestTombs();
+            tombs[targetId] = Date.now();
+            saveDeletedGuestTombs(tombs);
+
+            const ledger = getVoteLedger();
+            if (ledger[targetId]) {
+                delete ledger[targetId];
+                saveVoteLedger(ledger);
+            }
+
+            const userTickets = getUserLotteryTickets();
+            if (userTickets[targetId]) {
+                delete userTickets[targetId];
+                saveUserLotteryTickets(userTickets);
+            }
 
             singlePassVoteQueue = singlePassVoteQueue.filter(e => e.voterId !== targetId);
 
-            broadcastGlobalState();
+            delete customVoters[targetId];
+            saveCustomGuestVoters(customVoters);
 
             playUiSound('switch');
             renderAdminVoterRegistry();
             renderLeaderboard();
             updateLiveNewsTicker();
+            broadcastCloudState(null, false);
         }
 
         function adminResetOfficialVotes() {
             if (confirm("Reset all votes (official & test), used IDs, and all accounts' RNG Lottery rolls across all devices?")) {
                 const newEpoch = Date.now();
-                const preservedCustomVoters = getCustomGuestVoters();
-                const customTimes = {};
-                Object.keys(preservedCustomVoters).forEach(k => { customTimes[k] = newEpoch; });
-
-                globalVaultState = {
-                    v: 3,
-                    resetEpoch: newEpoch,
-                    updatedAt: newEpoch,
-                    senderId: CLIENT_INSTANCE_ID,
-                    voteLedger: {},
-                    voteTimes: {},
-                    customVoters: preservedCustomVoters,
-                    customTimes: customTimes,
-                    deletedVoters: {},
-                    userTickets: {},
-                    redeemKeys: {},
-                    testVotes: {},
-                    lastEvent: null
-                };
-
-                announcedVoteEventKeys.clear();
+                setResetEpoch(newEpoch);
+                saveDeletedGuestTombs({});
+                saveVoteLedger({});
+                saveTestVoteCounts({});
+                saveUserLotteryTickets({});
+                saveStoredRedeemKeys({});
+                localStorage.removeItem('roadSenseVotedMember');
                 singlePassVoteQueue = [];
                 currentWonCode = "";
-                localStorage.removeItem('roadSenseVotedMember');
-
-                broadcastGlobalState();
 
                 renderAdminVoterRegistry();
                 renderLeaderboard();
                 syncLotteryAndRedeemForAccount();
                 updateLiveNewsTicker();
+                broadcastCloudState(null, true);
                 alert("All votes, used statuses, and RNG Lottery rolls have been reset across all devices!");
             }
         }
 
         // =====================================================================
-        // 12. LIVE PERMANENT LEADERBOARD RENDERER
+        // 10. LIVE PERMANENT LEADERBOARD RENDERER
         // =====================================================================
         function renderLeaderboard() {
             const counts = getOfficialVoteCounts();
@@ -2859,8 +2341,116 @@
         }
 
         // =====================================================================
-        // 13. RNG LOTTERY & PER-ACCOUNT ISOLATED REWARD POOL
+        // 11. RNG LOTTERY & PER-ACCOUNT ISOLATED REWARD POOL
         // =====================================================================
+        const PRIZE_POOL = {
+            first: {
+                tier: "🏆 1st PRIZE // MAIN SOUNDTRACK",
+                title: "Official RoadSense ADAS Theme",
+                desc: "Unlocked the official main studio soundtrack of RoadSense ADAS.",
+                url: "music.mpeg",
+                redirectUrl: "https://drive.google.com/file/d/1MKol3ZnOTRjucUFhMYC7wFQ6nSNPIjPB/view?usp=drive_link",
+                downloadUrl: "https://drive.google.com/uc?export=download&id=1MKol3ZnOTRjucUFhMYC7wFQ6nSNPIjPB",
+                type: "audio"
+            },
+            second: {
+                tier: "🥈 2nd PRIZE // EXCLUSIVE RICKROLL",
+                title: "Exclusive Mystery Audio Track",
+                desc: "Unlocked the custom exclusive bonus audio track!",
+                url: "music1.mpeg",
+                redirectUrl: "https://drive.google.com/file/d/1sIsLznY5wm9eAxj77YQrCGq8ZiA9siyy/view?usp=drive_link",
+                downloadUrl: "https://drive.google.com/uc?export=download&id=1sIsLznY5wm9eAxj77YQrCGq8ZiA9siyy",
+                type: "audio"
+            },
+            videos: [
+                {
+                    tier: "🎬 3rd PRIZE // BTS FIELD VIDEO 1",
+                    title: "Behind-The-Scenes Video 1: Highway Traffic & Cut-In Test",
+                    desc: "Live smartphone telemetry test tracking vehicles in dense Indian traffic.",
+                    url: "Video1.mp4",
+                    redirectUrl: "https://drive.google.com/file/d/121SMIjgqfAwIwrB5OG1aufoUCyVeci8v/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=121SMIjgqfAwIwrB5OG1aufoUCyVeci8v",
+                    type: "video",
+                    isDownload: true
+                },
+                {
+                    tier: "🎬 3rd PRIZE // BTS FIELD VIDEO 2",
+                    title: "Behind-The-Scenes Video 2: HP Victus Laptop Dashcam Test",
+                    desc: "Behind-the-scenes capture testing real-time collision urgency.",
+                    url: "Video2.mp4",
+                    redirectUrl: "https://drive.google.com/file/d/1GCKHFaTwVjJ8PBdlbYYKtd55Mgec3fqM/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1GCKHFaTwVjJ8PBdlbYYKtd55Mgec3fqM",
+                    type: "video",
+                    isDownload: true
+                }
+            ],
+            photos: [
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 1",
+                    title: "Behind-The-Scenes Photo 1: Early Prototype Snapshot",
+                    desc: "Archival snapshot from our perception engine development phase.",
+                    url: "Photo1.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/1ysfzs1DHAB8zW-yP6_N1HIyKMw9dsXdF/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1ysfzs1DHAB8zW-yP6_N1HIyKMw9dsXdF",
+                    type: "image"
+                },
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 2",
+                    title: "Behind-The-Scenes Photo 2: Night Monsoon Rain Test",
+                    desc: "Testing YOLO bounding-box lock through heavy night rain droplets.",
+                    url: "Photo2.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/1M54ohg1QB1HsbtPSVrbFhdvkwpJecLb7/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1M54ohg1QB1HsbtPSVrbFhdvkwpJecLb7",
+                    type: "image"
+                },
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 3",
+                    title: "Behind-The-Scenes Photo 3: TensorRT High-Confidence Lock",
+                    desc: "TensorRT (.engine) benchmark locking onto bus_truck (0.96) & pedestrian.",
+                    url: "Photo3.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/1zJqe3l38hpV_JnVCzSguMAAPoI8_rWK2/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1zJqe3l38hpV_JnVCzSguMAAPoI8_rWK2",
+                    type: "image"
+                },
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 4",
+                    title: "Behind-The-Scenes Photo 4: EDA & Spatial Heatmaps",
+                    desc: "Exploratory Data Analysis showing bounding-box spatial density.",
+                    url: "Photo4.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/1oDCaYXKkJPdXmW7eVpjB4DjnwTka_1jt/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1oDCaYXKkJPdXmW7eVpjB4DjnwTka_1jt",
+                    type: "image"
+                },
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 5",
+                    title: "Behind-The-Scenes Photo 5: Bus Mosaic Batch",
+                    desc: "Training batch mosaic augmentation verifying bus and rider detection.",
+                    url: "Photo5.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/17iaA0iNYfIRYHrJTccIVrC0iyF_QgWAX/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=17iaA0iNYfIRYHrJTccIVrC0iyF_QgWAX",
+                    type: "image"
+                },
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 6",
+                    title: "Behind-The-Scenes Photo 6: Dense Traffic Mosaic",
+                    desc: "IDD training batch with dense multi-class annotations.",
+                    url: "Photo6.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/1XbVzh8i7IAdzIx1bbx3o-9AacgIvXdNa/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1XbVzh8i7IAdzIx1bbx3o-9AacgIvXdNa",
+                    type: "image"
+                },
+                {
+                    tier: "📸 4th PRIZE // BTS PHOTO 7",
+                    title: "Behind-The-Scenes Photo 7: Jupyter Notebook Verification",
+                    desc: "Dataset verification script plotting green ground-truth YOLO boxes.",
+                    url: "Photo7.jpeg",
+                    redirectUrl: "https://drive.google.com/file/d/1lNAl4NDcskxEgVfxdivBCS8zz4lZH-X9/view?usp=drive_link",
+                    downloadUrl: "https://drive.google.com/uc?export=download&id=1lNAl4NDcskxEgVfxdivBCS8zz4lZH-X9",
+                    type: "image"
+                }
+            ]
+        };
+
         function generateTenDigitSteamKey() {
             const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
             let key = "";
@@ -2950,6 +2540,7 @@
                     if (codeInput) codeInput.value = code;
 
                     renderAdminVoterRegistry();
+                    broadcastCloudState(null, false);
                 }
             }, 80);
         }
@@ -2974,7 +2565,7 @@
         }
 
         // =====================================================================
-        // 14. REDEEM PORTAL & REWARD PLAYBACK PAUSE/RESUME LIFECYCLE
+        // 12. REDEEM PORTAL & REWARD PLAYBACK PAUSE/RESUME LIFECYCLE
         // =====================================================================
         function redeemEnteredCode() {
             const rawInput = (document.getElementById('codeInputBox').value || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
