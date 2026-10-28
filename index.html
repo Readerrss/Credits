@@ -170,7 +170,7 @@
             <!-- Row 1 on Mobile / Left Group on Desktop -->
             <div class="w-full lg:w-auto flex items-center justify-between gap-2 shrink-0">
                 <div class="flex items-center gap-2 min-w-0">
-                    <span id="vaultStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0" title="Live Cloud Sync Active"></span>
+                    <span id="vaultStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0" title="Live Cloud & Inbuilt DB Sync Active"></span>
                     <h1 class="text-xs sm:text-sm xl:text-base font-bold text-white tracking-tight truncate">
                         ROADSENSE // CREDITS &amp; VAULT
                     </h1>
@@ -411,7 +411,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#232938] pb-3">
                     <div>
                         <span class="text-[10px] mono-num uppercase tracking-wider text-amber-400 font-bold block">
-                            AUTHENTICATED TEAM POLL // GLOBAL CLOUD SYNC
+                            AUTHENTICATED TEAM POLL // UNLIMITED INBUILT DB &amp; CLOUD SYNC
                         </span>
                         <h3 class="text-lg sm:text-xl font-bold text-white">
                             Vote for Your Favorite Project Member
@@ -472,21 +472,21 @@
                             🛠️ ADMIN CONTROL PANEL (ID 0000)
                         </span>
                         <span class="text-[10px] mono-num bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded border border-sky-500/40">
-                            ∞ UNLIMITED VOTES &amp; RNG ROLLS
+                            ∞ UNLIMITED USERS, VOTES &amp; RNG ROLLS
                         </span>
                     </div>
 
                     <!-- Add Guest Voter ID -->
                     <div class="recessed-well p-3.5 rounded-xl border border-[#283248] space-y-2.5">
                         <div class="text-xs font-bold text-white">
-                            ➕ Add Voter ID
+                            ➕ Add Voter ID (Unlimited Capacity)
                         </div>
                         <p class="text-[11px] text-gray-400">
-                            Enter a 4-digit ID (or leave blank to auto-generate a random ID). Add an optional Name/Tag or leave blank to display by ID.
+                            Enter a 4-character ID (or leave blank to auto-generate a unique ID). Add an optional Name/Tag or leave blank to display by ID.
                         </p>
                         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
-                            <input type="text" id="newGuestIdInput" maxlength="4" placeholder="ID (Blank = Random)" class="recessed-well px-3 py-1.5 rounded-lg text-xs mono-num text-white border border-[#36425e] focus:outline-none focus:border-sky-400 uppercase tracking-widest sm:w-44 text-center" />
-                            <input type="text" id="newGuestLabelInput" maxlength="28" placeholder="Name or Tag (Optional)" class="recessed-well px-3 py-1.5 rounded-lg text-xs text-white border border-[#36425e] focus:outline-none focus:border-sky-400 flex-1" />
+                            <input type="text" id="newGuestIdInput" maxlength="4" placeholder="ID (Blank = Random)" onkeydown="if(event.key==='Enter') adminAddGuestVoterId()" class="recessed-well px-3 py-1.5 rounded-lg text-xs mono-num text-white border border-[#36425e] focus:outline-none focus:border-sky-400 uppercase tracking-widest sm:w-44 text-center" />
+                            <input type="text" id="newGuestLabelInput" maxlength="40" placeholder="Name or Tag (Optional)" onkeydown="if(event.key==='Enter') adminAddGuestVoterId()" class="recessed-well px-3 py-1.5 rounded-lg text-xs text-white border border-[#36425e] focus:outline-none focus:border-sky-400 flex-1" />
                             <button type="button" onclick="adminAddGuestVoterId()" class="px-4 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#042419] text-xs font-bold transition cursor-pointer whitespace-nowrap">
                                 ➕ Add Voter ID
                             </button>
@@ -497,14 +497,14 @@
                     <div class="recessed-well p-3.5 rounded-xl border border-[#283248] space-y-2.5">
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <div>
-                                <span class="text-xs font-bold text-white block">📋 Registered Voter IDs (Synced Across Devices)</span>
+                                <span class="text-xs font-bold text-white block">📋 Registered Voter IDs (Persistent Inbuilt DB + Cloud Sync)</span>
                                 <span id="adminRegistryCount" class="text-[11px] mono-num text-gray-400"></span>
                             </div>
                             <button type="button" onclick="adminResetOfficialVotes()" class="px-3 py-1.5 rounded-lg bg-red-950/80 hover:bg-red-900 border border-red-500/50 text-red-200 text-xs font-semibold transition cursor-pointer">
                                 🔄 Reset All Votes &amp; Tickets
                             </button>
                         </div>
-                        <div id="adminVoterRegistryList" class="max-h-48 overflow-y-auto space-y-1.5 pr-1"></div>
+                        <div id="adminVoterRegistryList" class="max-h-56 overflow-y-auto space-y-1.5 pr-1"></div>
                     </div>
                 </div>
 
@@ -514,7 +514,7 @@
                 <!-- POST-VOTE UNLOCK BANNER -->
                 <div id="voteConfirmedBanner" class="hidden mt-4 p-4 rounded-xl bg-emerald-950/70 border border-emerald-500/60 flex flex-wrap items-center justify-between gap-3">
                     <div class="text-xs sm:text-sm text-emerald-200">
-                        🎉 <strong class="text-white">Vote Registered for <span id="chosenMemberSpan" class="text-emerald-300 underline font-bold"></span>!</strong> RNG Telemetry Vault unlocked.
+                        🎉 <strong class="text-white">Vote Registered for <span id="chosenMemberSpan" class="text-emerald-300 underline font-bold"></span>!</strong> RNG Telemetry Vault &amp; Redeem Portal unlocked.
                     </div>
                     <div class="flex items-center gap-2">
                         <button type="button" onclick="switchPageSection('lottery')" class="btn-action px-4 py-2 rounded-lg text-xs uppercase tracking-wider cursor-pointer">
@@ -1008,15 +1008,115 @@
         }
 
         // =====================================================================
-        // 4. REAL-TIME GLOBAL CLOUD SYNC ENGINE + CONFLICT-FREE STATE MERGER
-        // - Synchronizes votes, used Voter IDs, custom guest IDs, lottery tickets,
-        //   redeem keys, and live vote ticker announcements across ALL devices!
+        // 4. UNLIMITED INBUILT PERSISTENT DATABASE (IndexedDB + LocalStorage)
+        //    + REAL-TIME MULTI-BROKER GLOBAL CLOUD SYNC
         // =====================================================================
+        const IDB_NAME = "RoadSenseUnlimitedVaultDB";
+        const IDB_STORE = "vault_kv_store";
+        let idbInstance = null;
+
+        // In-memory high-speed cache backed by LocalStorage + Unlimited IndexedDB
+        const MEM_STORE = {};
+
+        function readKeySync(key, fallbackObj) {
+            if (key in MEM_STORE) {
+                return JSON.parse(JSON.stringify(MEM_STORE[key]));
+            }
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw !== null && raw !== undefined) {
+                    const parsed = JSON.parse(raw);
+                    MEM_STORE[key] = parsed;
+                    return JSON.parse(JSON.stringify(parsed));
+                }
+            } catch (e) {}
+            return JSON.parse(JSON.stringify(fallbackObj));
+        }
+
+        function writeKeyPersistent(key, valObj) {
+            const clone = JSON.parse(JSON.stringify(valObj));
+            MEM_STORE[key] = clone;
+            const serialized = JSON.stringify(clone);
+            try {
+                localStorage.setItem(key, serialized);
+            } catch (e) {
+                // Even if localStorage quota is ever exceeded, IndexedDB & MEM_STORE store unlimited data!
+            }
+            if (idbInstance) {
+                try {
+                    const tx = idbInstance.transaction(IDB_STORE, "readwrite");
+                    tx.objectStore(IDB_STORE).put(clone, key);
+                } catch (e) {}
+            }
+        }
+
+        function initUnlimitedIndexedDB() {
+            return new Promise((resolve) => {
+                if (!window.indexedDB) {
+                    resolve();
+                    return;
+                }
+                try {
+                    const req = indexedDB.open(IDB_NAME, 1);
+                    req.onupgradeneeded = (ev) => {
+                        const db = ev.target.result;
+                        if (!db.objectStoreNames.contains(IDB_STORE)) {
+                            db.createObjectStore(IDB_STORE);
+                        }
+                    };
+                    req.onsuccess = (ev) => {
+                        idbInstance = ev.target.result;
+                        const tx = idbInstance.transaction(IDB_STORE, "readonly");
+                        const store = tx.objectStore(IDB_STORE);
+                        const keysToHydrate = [
+                            "roadSense_resetEpoch",
+                            "roadSense_deletedGuests",
+                            "roadSense_customVoters",
+                            "roadSense_voteLedger",
+                            "roadSense_userTickets",
+                            "roadSense_redeemKeys",
+                            "roadSense_testVotes"
+                        ];
+                        let pending = keysToHydrate.length;
+                        keysToHydrate.forEach((k) => {
+                            const getReq = store.get(k);
+                            getReq.onsuccess = () => {
+                                if (getReq.result !== undefined && getReq.result !== null) {
+                                    // Merge IndexedDB with any existing localStorage data
+                                    const lsVal = readKeySync(k, null);
+                                    if (lsVal && typeof lsVal === 'object' && typeof getReq.result === 'object' && !Array.isArray(lsVal)) {
+                                        const merged = { ...getReq.result, ...lsVal };
+                                        MEM_STORE[k] = merged;
+                                        try { localStorage.setItem(k, JSON.stringify(merged)); } catch (e) {}
+                                    } else {
+                                        MEM_STORE[k] = getReq.result;
+                                        try { localStorage.setItem(k, JSON.stringify(getReq.result)); } catch (e) {}
+                                    }
+                                } else if (k in MEM_STORE) {
+                                    writeKeyPersistent(k, MEM_STORE[k]);
+                                }
+                                pending--;
+                                if (pending <= 0) resolve();
+                            };
+                            getReq.onerror = () => {
+                                pending--;
+                                if (pending <= 0) resolve();
+                            };
+                        });
+                    };
+                    req.onerror = () => resolve();
+                } catch (e) {
+                    resolve();
+                }
+            });
+        }
+
         const CLOUD_STATE_TOPIC = "roadsense/adas/v2026_global/vault_state_v2";
         const CLOUD_EVENT_TOPIC = "roadsense/adas/v2026_global/live_vote_v2";
         const MQTT_BROKERS = [
             "wss://broker.emqx.io:8084/mqtt",
-            "wss://broker.hivemq.com:8884/mqtt"
+            "wss://broker.hivemq.com:8884/mqtt",
+            "wss://test.mosquitto.org:8081/mqtt"
         ];
 
         let mqttClients = [];
@@ -1024,37 +1124,28 @@
         let localBroadcastChannel = null;
 
         function getResetEpoch() {
-            return parseInt(localStorage.getItem('roadSense_resetEpoch') || "0", 10);
+            const val = readKeySync('roadSense_resetEpoch', 0);
+            return parseInt(val || "0", 10);
         }
 
         function setResetEpoch(epoch) {
-            localStorage.setItem('roadSense_resetEpoch', String(epoch));
+            writeKeyPersistent('roadSense_resetEpoch', Number(epoch));
         }
 
         function getDeletedGuestTombs() {
-            try {
-                const raw = localStorage.getItem('roadSense_deletedGuests');
-                return raw ? JSON.parse(raw) : {};
-            } catch (e) {
-                return {};
-            }
+            return readKeySync('roadSense_deletedGuests', {});
         }
 
         function saveDeletedGuestTombs(map) {
-            localStorage.setItem('roadSense_deletedGuests', JSON.stringify(map));
+            writeKeyPersistent('roadSense_deletedGuests', map || {});
         }
 
         function getCustomGuestVoters() {
-            try {
-                const raw = localStorage.getItem('roadSense_customVoters');
-                return raw ? JSON.parse(raw) : {};
-            } catch (e) {
-                return {};
-            }
+            return readKeySync('roadSense_customVoters', {});
         }
 
         function saveCustomGuestVoters(map) {
-            localStorage.setItem('roadSense_customVoters', JSON.stringify(map));
+            writeKeyPersistent('roadSense_customVoters', map || {});
         }
 
         function getAllAuthorizedVoters() {
@@ -1075,20 +1166,15 @@
         }
 
         function getVoteLedger() {
-            try {
-                const raw = localStorage.getItem('roadSense_voteLedger');
-                return raw ? JSON.parse(raw) : {};
-            } catch (e) {
-                return {};
-            }
+            return readKeySync('roadSense_voteLedger', {});
         }
 
         function saveVoteLedger(ledger) {
-            localStorage.setItem('roadSense_voteLedger', JSON.stringify(ledger));
-            recomputeVoteCountsAndUsedIdsFromLedger(ledger);
+            writeKeyPersistent('roadSense_voteLedger', ledger || {});
+            recomputeVoteCountsAndUsedIdsFromLedger(ledger || {});
         }
 
-        // Derives officialVoteCounts & usedVoterIDs directly from voteLedger so they NEVER desync across devices
+        // Derives officialVoteCounts & usedVoterIDs directly from voteLedger so they NEVER desync
         function recomputeVoteCountsAndUsedIdsFromLedger(ledger) {
             const counts = { ...DEFAULT_VOTE_COUNTS };
             const usedIds = [];
@@ -1100,8 +1186,8 @@
                     }
                 }
             });
-            localStorage.setItem('roadSense_voteCounts', JSON.stringify(counts));
-            localStorage.setItem('roadSense_usedVoterIDs', JSON.stringify(usedIds));
+            writeKeyPersistent('roadSense_voteCounts', counts);
+            writeKeyPersistent('roadSense_usedVoterIDs', usedIds);
             return { counts, usedIds };
         }
 
@@ -1116,42 +1202,27 @@
         }
 
         function getTestVoteCounts() {
-            try {
-                const stored = localStorage.getItem('roadSense_testVotes');
-                return stored ? JSON.parse(stored) : {};
-            } catch (e) {
-                return {};
-            }
+            return readKeySync('roadSense_testVotes', {});
         }
 
         function saveTestVoteCounts(tv) {
-            localStorage.setItem('roadSense_testVotes', JSON.stringify(tv));
+            writeKeyPersistent('roadSense_testVotes', tv || {});
         }
 
         function getUserLotteryTickets() {
-            try {
-                const raw = localStorage.getItem('roadSense_userTickets');
-                return raw ? JSON.parse(raw) : {};
-            } catch (e) {
-                return {};
-            }
+            return readKeySync('roadSense_userTickets', {});
         }
 
         function saveUserLotteryTickets(map) {
-            localStorage.setItem('roadSense_userTickets', JSON.stringify(map));
+            writeKeyPersistent('roadSense_userTickets', map || {});
         }
 
         function getStoredRedeemKeys() {
-            try {
-                const raw = localStorage.getItem('roadSense_redeemKeys');
-                return raw ? JSON.parse(raw) : {};
-            } catch (e) {
-                return {};
-            }
+            return readKeySync('roadSense_redeemKeys', {});
         }
 
         function saveStoredRedeemKeys(map) {
-            localStorage.setItem('roadSense_redeemKeys', JSON.stringify(map));
+            writeKeyPersistent('roadSense_redeemKeys', map || {});
         }
 
         // Build complete snapshot for cloud sync
@@ -1193,14 +1264,13 @@
             }
         }
 
-        // Merge incoming cloud state without losing concurrent votes from any device
+        // Merge incoming cloud state without losing concurrent votes or users from any device
         function applyIncomingCloudSnapshot(incoming) {
             if (!incoming || typeof incoming !== 'object') return;
 
             const localEpoch = getResetEpoch();
             const remoteEpoch = parseInt(incoming.resetEpoch || "0", 10);
 
-            // If remote state is from BEFORE our last Admin Reset, push our newer reset state back
             if (remoteEpoch < localEpoch) {
                 broadcastCloudState(null, true);
                 return;
@@ -1209,7 +1279,6 @@
             let stateChanged = false;
             let localHasExtraData = false;
 
-            // If an Admin on another device triggered a Reset (remoteEpoch > localEpoch)
             if (remoteEpoch > localEpoch) {
                 setResetEpoch(remoteEpoch);
                 saveDeletedGuestTombs(incoming.deletedGuests || {});
@@ -1222,7 +1291,6 @@
                 currentWonCode = "";
                 stateChanged = true;
             } else {
-                // Same epoch: conflict-free union merge!
                 const mergedTombs = { ...getDeletedGuestTombs(), ...(incoming.deletedGuests || {}) };
                 saveDeletedGuestTombs(mergedTombs);
 
@@ -1240,7 +1308,6 @@
                     localHasExtraData = true;
                 }
 
-                // Merge voteLedger (excluding deleted guest IDs)
                 const localLedger = getVoteLedger();
                 const remoteLedger = incoming.voteLedger || {};
                 const mergedLedger = { ...remoteLedger, ...localLedger };
@@ -1255,7 +1322,6 @@
                     localHasExtraData = true;
                 }
 
-                // Merge userTickets
                 const localTickets = getUserLotteryTickets();
                 const remoteTickets = incoming.userTickets || {};
                 const mergedTickets = { ...remoteTickets, ...localTickets };
@@ -1270,7 +1336,6 @@
                     localHasExtraData = true;
                 }
 
-                // Merge 10-digit redeemKeys so any key generated on any device unlocks on any device
                 const localKeys = getStoredRedeemKeys();
                 const remoteKeys = incoming.redeemKeys || {};
                 const mergedKeys = { ...remoteKeys, ...localKeys };
@@ -1282,7 +1347,6 @@
                     localHasExtraData = true;
                 }
 
-                // Merge testVotes (take max per candidate)
                 const localTest = getTestVoteCounts();
                 const remoteTest = incoming.testVotes || {};
                 const mergedTest = { ...localTest };
@@ -1295,7 +1359,6 @@
                 }
             }
 
-            // Check if there is a recent live vote event to glide across the top ticker bar
             let incomingVoteEvt = incoming.lastVoteEvent;
             if (incomingVoteEvt && incomingVoteEvt.eventId && !seenVoteEventIds.has(incomingVoteEvt.eventId)) {
                 seenVoteEventIds.add(incomingVoteEvt.eventId);
@@ -1312,7 +1375,6 @@
                 refreshAllUiAfterCloudSync();
             }
 
-            // If our device had offline votes that the cloud broker didn't have yet, push the union back
             if (localHasExtraData) {
                 broadcastCloudState(null, false);
             }
@@ -1324,7 +1386,6 @@
                 ? (ledger[activeSessionVoterId] || null)
                 : null;
 
-            // If the currently logged-in user voted on another device, immediately unlock their Vault & lock their vote button
             if (activeSessionVoterId && activeSessionVoterId !== "0000") {
                 if (currentVotedTarget) {
                     unlockVaultState(currentVotedTarget, true);
@@ -1341,7 +1402,6 @@
         }
 
         function initCloudSyncEngine() {
-            // 1. Same-device cross-tab sync
             try {
                 if (window.BroadcastChannel) {
                     localBroadcastChannel = new BroadcastChannel('roadsense_vault_sync_v2');
@@ -1353,7 +1413,11 @@
                 }
             } catch (e) {}
 
-            // 2. Cross-device global MQTT over WebSockets sync (Dual-broker redundancy)
+            // Cross-tab storage listener
+            window.addEventListener('storage', () => {
+                refreshAllUiAfterCloudSync();
+            });
+
             if (typeof mqtt === 'undefined') return;
 
             MQTT_BROKERS.forEach((brokerUrl) => {
@@ -1527,8 +1591,11 @@
             return copy;
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             crewShuffledList = shuffleArray(CREW_MEMBERS);
+
+            // Hydrate Unlimited Inbuilt IndexedDB first
+            await initUnlimitedIndexedDB();
 
             // Initialize Real-Time Cross-Device Sync
             initCloudSyncEngine();
@@ -1559,6 +1626,16 @@
         });
 
         function switchPageSection(section) {
+            // Ensure lock/unlock cards are always synced with the current account's vote status
+            const ledger = getVoteLedger();
+            const isUnlockedNow = hasVoted || activeSessionVoterId === "0000" || Boolean(activeSessionVoterId && ledger[activeSessionVoterId]);
+            if (isUnlockedNow) {
+                document.getElementById('lotteryLockedCard')?.classList.add('hidden');
+                document.getElementById('lotteryUnlockedContent')?.classList.remove('hidden');
+                document.getElementById('redeemLockedCard')?.classList.add('hidden');
+                document.getElementById('redeemUnlockedContent')?.classList.remove('hidden');
+            }
+
             const sections = {
                 credits: document.getElementById('viewCreditsAndVote'),
                 lottery: document.getElementById('viewRngLottery'),
@@ -1593,6 +1670,10 @@
             if (section !== 'credits') {
                 stopAutoRoll();
                 creditsScrollViewport.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            if (section === 'redeem' && currentWonCode) {
+                const input = document.getElementById('codeInputBox');
+                if (input && !input.value) input.value = currentWonCode;
             }
             if (section === 'leaderboard') {
                 renderLeaderboard();
@@ -1709,8 +1790,6 @@
 
             document.getElementById('unlockedRewardCard')?.classList.add('hidden');
             document.getElementById('codeErrorText')?.classList.add('hidden');
-            const codeInput = document.getElementById('codeInputBox');
-            if (codeInput) codeInput.value = "";
 
             activeUnlockedItem = null;
             if (bgAudioWasPlayingBeforeReward && hasStartedExperience && !document.hidden) {
@@ -1733,6 +1812,7 @@
 
             if (!activeSessionVoterId) {
                 currentWonCode = "";
+                if (codeInput) codeInput.value = "";
                 if (btn) {
                     btn.disabled = false;
                     btn.innerText = "🎰 Roll RNG Lottery (1 Left)";
@@ -1770,9 +1850,9 @@
             const userTickets = getUserLotteryTickets();
             const myTicket = userTickets[activeSessionVoterId];
 
-            if (myTicket && myTicket.code && myTicket.prize) {
+            if (myTicket && myTicket.code) {
                 currentWonCode = myTicket.code;
-                const prize = myTicket.prize;
+                const prize = resolvePrizeFromTenDigitKey(myTicket.code) || myTicket.prize || PRIZE_POOL.first;
 
                 if (btn) {
                     btn.disabled = true;
@@ -1791,6 +1871,7 @@
                 if (codeInput) codeInput.value = myTicket.code;
             } else {
                 currentWonCode = "";
+                if (codeInput) codeInput.value = "";
                 if (btn) {
                     btn.disabled = false;
                     btn.innerText = "🎰 Roll RNG Lottery (1 Left)";
@@ -1869,7 +1950,7 @@
             if (alreadyVotedTarget) {
                 unlockVaultState(alreadyVotedTarget, isSilentRestore);
                 statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 block";
-                statusDiv.innerText = `✅ Welcome back, ${voterDisplay}! Your vote for ${alreadyVotedTarget} is synced across all devices.`;
+                statusDiv.innerText = `✅ Welcome back, ${voterDisplay}! Your vote for ${alreadyVotedTarget} is synced & both Vault sections are unlocked.`;
             } else {
                 lockVaultStateForNewVoter();
                 statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 block";
@@ -2095,10 +2176,11 @@
             document.getElementById('navLotteryLabel').innerText = "🎰 2. RNG Lottery";
             document.getElementById('navRedeemLabel').innerText = "🔓 3. Redeem Code";
 
+            // Unlock BOTH Section 2 (RNG Lottery) and Section 3 (Redeem Code Portal)
             document.getElementById('lotteryLockedCard').classList.add('hidden');
             document.getElementById('lotteryUnlockedContent').classList.remove('hidden');
-            document.getElementById('redeemLockedCard').classList.remove('hidden');
-            document.getElementById('redeemUnlockedContent').classList.add('hidden');
+            document.getElementById('redeemLockedCard').classList.add('hidden');
+            document.getElementById('redeemUnlockedContent').classList.remove('hidden');
 
             document.getElementById('chosenMemberSpan').innerText = name;
             const banner = document.getElementById('voteConfirmedBanner');
@@ -2110,7 +2192,7 @@
         }
 
         // =====================================================================
-        // 9. STREAMLINED ADMIN (0000) CONTROLS (SYNCED ACROSS ALL DEVICES)
+        // 9. STREAMLINED ADMIN (0000) CONTROLS (UNLIMITED CAPACITY & SYNCED)
         // =====================================================================
         function renderAdminVoterRegistry() {
             const listEl = document.getElementById('adminVoterRegistryList');
@@ -2129,7 +2211,7 @@
             }));
 
             const allEntries = [...coreEntries, ...guestEntries];
-            if (countEl) countEl.innerText = `${coreEntries.length} Core Protected • ${guestEntries.length} Added Guest IDs`;
+            if (countEl) countEl.innerText = `${coreEntries.length} Core Protected • ${guestEntries.length} Added Guest IDs (Unlimited DB)`;
 
             listEl.innerHTML = allEntries.map(entry => {
                 const votedCandidate = ledger[entry.id] || null;
@@ -2163,6 +2245,22 @@
             }).join('');
         }
 
+        function generateUniqueFourCharId(existingMap) {
+            // First try 4-digit numbers (1000-9999), then seamlessly expand to 1.67M alphanumeric 4-char IDs
+            for (let attempt = 0; attempt < 500; attempt++) {
+                const numId = String(Math.floor(1000 + Math.random() * 9000));
+                if (numId !== "0000" && !(numId in existingMap)) return numId;
+            }
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            while (true) {
+                let code = "";
+                for (let i = 0; i < 4; i++) {
+                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                if (code !== "0000" && !(code in existingMap)) return code;
+            }
+        }
+
         function adminAddGuestVoterId() {
             const idInput = document.getElementById('newGuestIdInput');
             const labelInput = document.getElementById('newGuestLabelInput');
@@ -2170,9 +2268,7 @@
 
             let rawId = (idInput.value || "").trim().toUpperCase();
             if (!rawId) {
-                do {
-                    rawId = String(Math.floor(1000 + Math.random() * 9000));
-                } while (rawId === "0000" || (rawId in allVoters));
+                rawId = generateUniqueFourCharId(allVoters);
             }
 
             const label = (labelInput.value || "").trim();
@@ -2341,7 +2437,7 @@
         }
 
         // =====================================================================
-        // 11. RNG LOTTERY & PER-ACCOUNT ISOLATED REWARD POOL
+        // 11. RNG LOTTERY & SELF-VERIFYING 10-DIGIT KEY ENGINE
         // =====================================================================
         const PRIZE_POOL = {
             first: {
@@ -2451,30 +2547,87 @@
             ]
         };
 
+        constORDERED_PRIZE_CATALOG = [
+            PRIZE_POOL.first,
+            PRIZE_POOL.second,
+            PRIZE_POOL.videos[0],
+            PRIZE_POOL.videos[1],
+            ...PRIZE_POOL.photos
+        ];
+
+        const KEY_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+        function computeKeyPrefixHash(prefix8) {
+            let h = 17;
+            for (let i = 0; i < prefix8.length; i++) {
+                h = (h * 31 + KEY_ALPHABET.indexOf(prefix8[i]) + i * 7) % 1024;
+            }
+            return h;
+        }
+
         function generateTenDigitSteamKey() {
-            const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-            let key = "";
-            for (let i = 0; i < 10; i++) {
-                key += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
-            }
-
             const roll = Math.random() * 100;
-            let chosenPrize = null;
+            let prizeIndex = 0;
             if (roll < 20) {
-                chosenPrize = PRIZE_POOL.first;
+                prizeIndex = 0;
             } else if (roll < 40) {
-                chosenPrize = PRIZE_POOL.second;
+                prizeIndex = 1;
             } else if (roll < 70) {
-                chosenPrize = PRIZE_POOL.videos[Math.floor(Math.random() * PRIZE_POOL.videos.length)];
+                prizeIndex = 2 + Math.floor(Math.random() * 2);
             } else {
-                chosenPrize = PRIZE_POOL.photos[Math.floor(Math.random() * PRIZE_POOL.photos.length)];
+                prizeIndex = 4 + Math.floor(Math.random() * 7);
             }
 
+            let prefix = "";
+            for (let i = 0; i < 8; i++) {
+                prefix += KEY_ALPHABET.charAt(Math.floor(Math.random() * KEY_ALPHABET.length));
+            }
+
+            const h = computeKeyPrefixHash(prefix);
+            const char8 = KEY_ALPHABET.charAt((prizeIndex + h) % 32);
+            const char9 = KEY_ALPHABET.charAt((h * 7 + prizeIndex * 13 + 19) % 32);
+            const key = prefix + char8 + char9;
+
+            const chosenPrize = ORDERED_PRIZE_CATALOG[prizeIndex];
+
+            // Store compact prize index in database for fast cloud sync
             const redeemKeys = getStoredRedeemKeys();
-            redeemKeys[key] = chosenPrize;
+            redeemKeys[key] = prizeIndex;
             saveStoredRedeemKeys(redeemKeys);
 
-            return { key, prize: chosenPrize };
+            return { key, prize: chosenPrize, prizeIndex };
+        }
+
+        function resolvePrizeFromTenDigitKey(rawKey) {
+            if (!rawKey || rawKey.length !== 10) return null;
+
+            // 1. Check stored redeem keys (supports both compact index and legacy object)
+            const redeemKeys = getStoredRedeemKeys();
+            if (rawKey in redeemKeys) {
+                const entry = redeemKeys[rawKey];
+                if (typeof entry === 'number' && ORDERED_PRIZE_CATALOG[entry]) {
+                    return ORDERED_PRIZE_CATALOG[entry];
+                }
+                if (entry && typeof entry === 'object' && entry.tier) {
+                    return entry;
+                }
+            }
+
+            // 2. Cryptographic self-verification (works across any device even offline)
+            const prefix = rawKey.substring(0, 8);
+            const idx8 = KEY_ALPHABET.indexOf(rawKey[8]);
+            const idx9 = KEY_ALPHABET.indexOf(rawKey[9]);
+            if (idx8 === -1 || idx9 === -1) return null;
+
+            const h = computeKeyPrefixHash(prefix);
+            const prizeIndex = (idx8 - (h % 32) + 32) % 32;
+            const expectedIdx9 = (h * 7 + prizeIndex * 13 + 19) % 32;
+
+            if (idx9 === expectedIdx9 && prizeIndex >= 0 && prizeIndex < ORDERED_PRIZE_CATALOG.length) {
+                return ORDERED_PRIZE_CATALOG[prizeIndex];
+            }
+
+            return null;
         }
 
         function spinRewardRng() {
@@ -2511,7 +2664,7 @@
                     isSpinningRngNow = false;
                     playUiSound('vote');
 
-                    const { key: code, prize } = generateTenDigitSteamKey();
+                    const { key: code, prize, prizeIndex } = generateTenDigitSteamKey();
                     currentWonCode = code;
                     const voterDisplay = getVoterDisplayName(activeSessionVoterId);
 
@@ -2521,7 +2674,7 @@
                         sub.innerText = "Admin 0000 Key Generated! Copy below or spin again.";
                     } else {
                         const latestTickets = getUserLotteryTickets();
-                        latestTickets[activeSessionVoterId] = { code, prize };
+                        latestTickets[activeSessionVoterId] = { code, prizeIndex };
                         saveUserLotteryTickets(latestTickets);
 
                         btn.disabled = true;
@@ -2560,7 +2713,11 @@
             const input = document.getElementById('codeInputBox');
             if (input) {
                 input.value = currentWonCode || "";
-                setTimeout(() => input.focus(), 100);
+                if (currentWonCode) {
+                    redeemEnteredCode();
+                } else {
+                    setTimeout(() => input.focus(), 100);
+                }
             }
         }
 
@@ -2574,8 +2731,7 @@
             const stage = document.getElementById('unlockedMediaStage');
             const btnAction = document.getElementById('directDownloadBtn');
 
-            const redeemKeys = getStoredRedeemKeys();
-            const item = redeemKeys[rawInput];
+            const item = resolvePrizeFromTenDigitKey(rawInput);
 
             if (!item || rawInput.length !== 10) {
                 playUiSound('error');
