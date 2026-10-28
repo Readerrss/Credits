@@ -1015,7 +1015,6 @@
         const IDB_STORE = "vault_kv_store";
         let idbInstance = null;
 
-        // In-memory high-speed cache backed by LocalStorage + Unlimited IndexedDB
         const MEM_STORE = {};
 
         function readKeySync(key, fallbackObj) {
@@ -1039,9 +1038,7 @@
             const serialized = JSON.stringify(clone);
             try {
                 localStorage.setItem(key, serialized);
-            } catch (e) {
-                // Even if localStorage quota is ever exceeded, IndexedDB & MEM_STORE store unlimited data!
-            }
+            } catch (e) {}
             if (idbInstance) {
                 try {
                     const tx = idbInstance.transaction(IDB_STORE, "readwrite");
@@ -1082,7 +1079,6 @@
                             const getReq = store.get(k);
                             getReq.onsuccess = () => {
                                 if (getReq.result !== undefined && getReq.result !== null) {
-                                    // Merge IndexedDB with any existing localStorage data
                                     const lsVal = readKeySync(k, null);
                                     if (lsVal && typeof lsVal === 'object' && typeof getReq.result === 'object' && !Array.isArray(lsVal)) {
                                         const merged = { ...getReq.result, ...lsVal };
@@ -1174,7 +1170,6 @@
             recomputeVoteCountsAndUsedIdsFromLedger(ledger || {});
         }
 
-        // Derives officialVoteCounts & usedVoterIDs directly from voteLedger so they NEVER desync
         function recomputeVoteCountsAndUsedIdsFromLedger(ledger) {
             const counts = { ...DEFAULT_VOTE_COUNTS };
             const usedIds = [];
@@ -1225,7 +1220,6 @@
             writeKeyPersistent('roadSense_redeemKeys', map || {});
         }
 
-        // Build complete snapshot for cloud sync
         function buildLocalCloudSnapshot(lastVoteEvent = null) {
             return {
                 resetEpoch: getResetEpoch(),
@@ -1240,7 +1234,6 @@
             };
         }
 
-        // Publish state to all connected cloud brokers (with retain: true) & BroadcastChannel
         function broadcastCloudState(lastVoteEvent = null, forceResetOverwrite = false) {
             const snapshot = buildLocalCloudSnapshot(lastVoteEvent);
             snapshot.forceReset = Boolean(forceResetOverwrite);
@@ -1264,7 +1257,6 @@
             }
         }
 
-        // Merge incoming cloud state without losing concurrent votes or users from any device
         function applyIncomingCloudSnapshot(incoming) {
             if (!incoming || typeof incoming !== 'object') return;
 
@@ -1397,7 +1389,8 @@
             renderPollCards(currentVotedTarget);
             renderLeaderboard();
             renderAdminVoterRegistry();
-            syncLotteryAndRedeemForAccount();
+            // Do NOT clear open redeem preview when a background cloud sync arrives
+            syncLotteryAndRedeemForAccount(false);
             updateLiveNewsTicker();
         }
 
@@ -1413,7 +1406,6 @@
                 }
             } catch (e) {}
 
-            // Cross-tab storage listener
             window.addEventListener('storage', () => {
                 refreshAllUiAfterCloudSync();
             });
@@ -1608,7 +1600,7 @@
             } else {
                 loadAndPlayTrackProfile('default');
                 renderPollCards();
-                syncLotteryAndRedeemForAccount();
+                syncLotteryAndRedeemForAccount(true);
             }
 
             renderLeaderboard();
@@ -1626,7 +1618,6 @@
         });
 
         function switchPageSection(section) {
-            // Ensure lock/unlock cards are always synced with the current account's vote status
             const ledger = getVoteLedger();
             const isUnlockedNow = hasVoted || activeSessionVoterId === "0000" || Boolean(activeSessionVoterId && ledger[activeSessionVoterId]);
             if (isUnlockedNow) {
@@ -1798,8 +1789,11 @@
             }
         }
 
-        function syncLotteryAndRedeemForAccount() {
-            clearRedeemPreviewStage();
+        function syncLotteryAndRedeemForAccount(shouldClearRedeemStage = false) {
+            if (shouldClearRedeemStage) {
+                clearRedeemPreviewStage();
+            }
+            if (isSpinningRngNow) return;
 
             const btn = document.getElementById('btnSpinRng');
             const icon = document.getElementById('slotIcon');
@@ -1812,7 +1806,7 @@
 
             if (!activeSessionVoterId) {
                 currentWonCode = "";
-                if (codeInput) codeInput.value = "";
+                if (codeInput && shouldClearRedeemStage) codeInput.value = "";
                 if (btn) {
                     btn.disabled = false;
                     btn.innerText = "🎰 Roll RNG Lottery (1 Left)";
@@ -1868,10 +1862,12 @@
                 document.getElementById('wonRedeemCode').innerText = myTicket.code;
                 card?.classList.remove('hidden');
 
-                if (codeInput) codeInput.value = myTicket.code;
+                if (codeInput && (!codeInput.value || shouldClearRedeemStage)) {
+                    codeInput.value = myTicket.code;
+                }
             } else {
                 currentWonCode = "";
-                if (codeInput) codeInput.value = "";
+                if (codeInput && shouldClearRedeemStage) codeInput.value = "";
                 if (btn) {
                     btn.disabled = false;
                     btn.innerText = "🎰 Roll RNG Lottery (1 Left)";
@@ -1931,7 +1927,7 @@
                 renderAdminVoterRegistry();
 
                 unlockVaultState("Admin Test Mode (0000)", true);
-                syncLotteryAndRedeemForAccount();
+                syncLotteryAndRedeemForAccount(true);
 
                 statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-sky-950/80 border border-sky-500/50 text-sky-300 block";
                 statusDiv.innerText = "🛠️ Admin 0000 Active: Unlimited test votes & unlimited RNG Lottery rolls enabled!";
@@ -1960,7 +1956,7 @@
             }
 
             renderPollCards(alreadyVotedTarget);
-            syncLotteryAndRedeemForAccount();
+            syncLotteryAndRedeemForAccount(true);
         }
 
         function switchVoterAccount() {
@@ -1987,7 +1983,7 @@
 
             lockVaultStateForNewVoter();
             renderPollCards(null);
-            syncLotteryAndRedeemForAccount();
+            syncLotteryAndRedeemForAccount(true);
             if (input) input.focus();
         }
 
@@ -2100,7 +2096,7 @@
                 saveTestVoteCounts(testVotes);
 
                 unlockVaultState(targetName, false);
-                syncLotteryAndRedeemForAccount();
+                syncLotteryAndRedeemForAccount(false);
                 statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-sky-950/80 border border-sky-500/50 text-sky-300 block";
                 statusDiv.innerText = `🧪 Admin 0000 Vote #${testVotes[targetName]} registered for ${targetName}! (Unlimited voting & RNG active).`;
                 renderLeaderboard();
@@ -2147,7 +2143,7 @@
             localStorage.setItem('roadSenseVoterID', id);
 
             unlockVaultState(targetName, false);
-            syncLotteryAndRedeemForAccount();
+            syncLotteryAndRedeemForAccount(false);
 
             statusDiv.className = "text-xs font-semibold py-1.5 px-3 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 block";
             statusDiv.innerText = `🎉 ${voterDisplay} voted for ${targetName}! Broadcasted live to all devices & RNG Vault unlocked.`;
@@ -2246,7 +2242,6 @@
         }
 
         function generateUniqueFourCharId(existingMap) {
-            // First try 4-digit numbers (1000-9999), then seamlessly expand to 1.67M alphanumeric 4-char IDs
             for (let attempt = 0; attempt < 500; attempt++) {
                 const numId = String(Math.floor(1000 + Math.random() * 9000));
                 if (numId !== "0000" && !(numId in existingMap)) return numId;
@@ -2356,7 +2351,7 @@
 
                 renderAdminVoterRegistry();
                 renderLeaderboard();
-                syncLotteryAndRedeemForAccount();
+                syncLotteryAndRedeemForAccount(true);
                 updateLiveNewsTicker();
                 broadcastCloudState(null, true);
                 alert("All votes, used statuses, and RNG Lottery rolls have been reset across all devices!");
@@ -2547,7 +2542,7 @@
             ]
         };
 
-        constORDERED_PRIZE_CATALOG = [
+        const ORDERED_PRIZE_CATALOG = [
             PRIZE_POOL.first,
             PRIZE_POOL.second,
             PRIZE_POOL.videos[0],
@@ -2590,7 +2585,6 @@
 
             const chosenPrize = ORDERED_PRIZE_CATALOG[prizeIndex];
 
-            // Store compact prize index in database for fast cloud sync
             const redeemKeys = getStoredRedeemKeys();
             redeemKeys[key] = prizeIndex;
             saveStoredRedeemKeys(redeemKeys);
@@ -2601,7 +2595,6 @@
         function resolvePrizeFromTenDigitKey(rawKey) {
             if (!rawKey || rawKey.length !== 10) return null;
 
-            // 1. Check stored redeem keys (supports both compact index and legacy object)
             const redeemKeys = getStoredRedeemKeys();
             if (rawKey in redeemKeys) {
                 const entry = redeemKeys[rawKey];
@@ -2613,7 +2606,6 @@
                 }
             }
 
-            // 2. Cryptographic self-verification (works across any device even offline)
             const prefix = rawKey.substring(0, 8);
             const idx8 = KEY_ALPHABET.indexOf(rawKey[8]);
             const idx9 = KEY_ALPHABET.indexOf(rawKey[9]);
@@ -2636,8 +2628,8 @@
             const isAdmin = (activeSessionVoterId === "0000");
             const userTickets = getUserLotteryTickets();
 
-            if (!isAdmin && userTickets[activeSessionVoterId]) {
-                syncLotteryAndRedeemForAccount();
+            if (!isAdmin && userTickets[activeSessionVoterId] && userTickets[activeSessionVoterId].code) {
+                syncLotteryAndRedeemForAccount(false);
                 return;
             }
 
